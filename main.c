@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "emu.h"
 
 int main(int argc, char *argv[])
 {
@@ -8,10 +9,13 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    FILE* romf = fopen(argv[1], "r");
+    FILE* romf = fopen(argv[1], "rb");
     if (romf == NULL) {
         printf("Could not open ROM File!\n\n");
         getchar();
         return 0;
     }
+
+    loadRom(romf);
+    getchar();
 }
