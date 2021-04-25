@@ -5,5 +5,6 @@
 char* rom;
 int rom_size;
 
+void emuStart();
 void loadRom(FILE* romf);
 void byteswapRom();

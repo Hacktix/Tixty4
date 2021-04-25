@@ -1,10 +1,15 @@
 #include "emu.h"
+#include "cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #define Z64_IDENTIFIER 0x80371240
 #define N64_IDENTIFIER 0x40123780
 #define V64_IDENTIFIER 0x37804012
+
+void emuStart() {
+    cpuInit();
+}
 
 void loadRom(FILE* romf) {
 	// Get File Size

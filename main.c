@@ -17,5 +17,6 @@ int main(int argc, char *argv[])
     }
 
     loadRom(romf);
+    emuStart();
     getchar();
 }
