@@ -1,4 +1,5 @@
 #pragma once
+#include "main.h"
 
 #define GPR_ZERO 0
 #define GPR_AT 1
@@ -74,3 +75,5 @@ int cpuInit();
 void cpuInitPIF();
 
 int cpuExec();
+
+void instrMTC0(u32 instr);
