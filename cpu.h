@@ -66,9 +66,9 @@
 #define CP0R_ErrorEPC 30
 #define CP0R_31 31
 
-long* gpr;
-long* cop0Reg;
-long pc;
+long long* gpr;
+long long* cop0Reg;
+long long pc;
 
-void cpuInit();
+int cpuInit();
 void cpuInitPIF();

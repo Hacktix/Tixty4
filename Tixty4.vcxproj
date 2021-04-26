@@ -142,11 +142,13 @@
     <ClCompile Include="cpu.c" />
     <ClCompile Include="emu.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="mmu.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpu.h" />
     <ClInclude Include="emu.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="mmu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
