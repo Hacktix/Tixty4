@@ -111,7 +111,7 @@ void writeu8(long long vaddr, u8 val) {
 }
 
 u8 readPhys(long long paddr) {
-    printf("Reading from 0x%x (Phys. Addr.)\n", paddr);
+    // printf("Reading from 0x%x (Phys. Addr.)\n", paddr);
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }
@@ -196,7 +196,7 @@ u8 readPhys(long long paddr) {
 }
 
 void writePhys(long long paddr, u8 val) {
-    printf("Writing 0x%x to 0x%x (Phys. Addr.)\n", val, paddr);
+    // printf("Writing 0x%x to 0x%x (Phys. Addr.)\n", val, paddr);
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }

@@ -72,3 +72,5 @@ long long pc;
 
 int cpuInit();
 void cpuInitPIF();
+
+int cpuExec();

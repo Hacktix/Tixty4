@@ -36,3 +36,17 @@ void cpuInitPIF() {
 
 	pc = 0xA4000040;
 }
+
+int cpuExec() {
+	u32 instr = readu32(pc);
+	u8 opcode = (instr >> 26) & 0x3F;
+	pc += 4;
+
+	switch (opcode) {
+	default:
+		printf("\nUnimplemented Instruction %08x\n", instr);
+		return -1;
+	}
+
+	return 0;
+}

@@ -7,4 +7,8 @@
 void emuStart(FILE* romf) {
     mmuInit(romf);
     cpuInit();
+
+    while (cpuExec() == 0) {
+        // Execute Loop
+    }
 }
