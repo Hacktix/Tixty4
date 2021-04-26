@@ -44,7 +44,7 @@ int cpuExec() {
 
 	switch (opcode) {
 	default:
-		printf("\nUnimplemented Instruction %08x\n", instr);
+		printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc-4);
 		return -1;
 	}
 

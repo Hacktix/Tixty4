@@ -17,7 +17,7 @@ int mmuInit(FILE* romf) {
 	fread(rom, rom_size, 1, romf);
 	byteswapRom();
 
-	printf("Loaded ROM (%d bytes)\n\n", rom_size);
+	printf(" [ INF ] Loaded ROM (%d bytes)\n\n", rom_size);
 
 	SPDmem = malloc(0x1000);
 	if (SPDmem == NULL)
@@ -111,7 +111,6 @@ void writeu8(long long vaddr, u8 val) {
 }
 
 u8 readPhys(long long paddr) {
-    // printf("Reading from 0x%x (Phys. Addr.)\n", paddr);
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }
@@ -196,7 +195,6 @@ u8 readPhys(long long paddr) {
 }
 
 void writePhys(long long paddr, u8 val) {
-    // printf("Writing 0x%x to 0x%x (Phys. Addr.)\n", val, paddr);
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }
@@ -286,10 +284,10 @@ void byteswapRom() {
 
     switch (ident) {
     case Z64_IDENTIFIER:
-        printf("Z64 formatted file, no byteswapping.\n");
+        printf(" [ INF ] Z64 formatted file, no byteswapping.\n");
         return;
     case N64_IDENTIFIER:
-        printf("Byteswapping N64 formatted file...\n");
+        printf(" [ INF ] Byteswapping N64 formatted file...\n");
         for (int i = 0; i < rom_size / 4; i++) {
             int w;
             memcpy(&w, rom + (i * 4), 4);
@@ -302,7 +300,7 @@ void byteswapRom() {
         }
         break;
     case V64_IDENTIFIER:
-        printf("Byteswapping V64 formatted file...\n");
+        printf(" [ INF ] Byteswapping V64 formatted file...\n");
         for (int i = 0; i < rom_size / 4; i++) {
             int w;
             memcpy(&w, rom + (i * 4), 4);
@@ -315,6 +313,6 @@ void byteswapRom() {
         }
         return;
     default:
-        printf("Unknown ROM Format %lx! Issues may occur.\n", ident);
+        printf(" [ INF ] Unknown ROM Format %lX! Issues may occur.\n", ident);
     }
 }
