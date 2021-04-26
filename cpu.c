@@ -55,6 +55,7 @@ int cpuExec() {
 	}
 		break;
 
+	case 0x09: instrADDIU(instr); break;
 	case 0x0F: instrLUI(instr); break;
 
 	default:
@@ -79,4 +80,14 @@ void instrLUI(u32 instr) {
 	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%08X]\n", t, (k >> 16) & 0xFFFF, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to GPR[%d]\n", k, t);
 	gpr[t] = k;
+}
+
+void instrADDIU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 k = instr & 0xFFFF;
+	i32 r = gpr[s] + k;
+	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
+	gpr[t] = r;
 }
