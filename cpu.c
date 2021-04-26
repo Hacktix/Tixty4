@@ -78,6 +78,7 @@ int cpuExec() {
 		case 0x0A: instrSLTI(instr); break;
 		case 0x0D: instrORI(instr); break;
 		case 0x0F: instrLUI(instr); break;
+		case 0x14: instrBEQL(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x2B: instrSW(instr); break;
 
@@ -195,6 +196,19 @@ void instrSLTI(u32 instr) {
 	gpr[t] = ((i64)gpr[s]) < k;
 	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%08X]\n", t, s, instr & 0xFFFF, pc - 4);
 	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[t], gpr[s], k, t);
+}
+
+void instrBEQL(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	delaySlot = pc + 4 * f;
+	branchDecision = (gpr[s] != gpr[t]);
+	delayQueue = 2;
+	if (!branchDecision)
+		pc += 4;
+	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 
