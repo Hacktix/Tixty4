@@ -88,6 +88,21 @@ void writeu8(u32 vaddr, u8 val) {
         return;
 }
 
+void writeu16(u32 vaddr, u16 val) {
+    writeu8(vaddr, (val >> 8) & 0xFF);
+    writeu8(vaddr + 1, val & 0xFF);
+}
+
+void writeu32(u32 vaddr, u32 val) {
+    writeu16(vaddr, (val >> 16) & 0xFFFF);
+    writeu16(vaddr + 2, val & 0xFFFF);
+}
+
+void writeu64(u32 vaddr, u64 val) {
+    writeu32(vaddr, (val >> 32) & 0xFFFFFFFF);
+    writeu32(vaddr + 4, val & 0xFFFFFFFF);
+}
+
 u8 readPhys(u32 paddr) {
     if (paddr < 0x00400000) {
         // RDRAM - built in

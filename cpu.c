@@ -64,6 +64,7 @@ int cpuExec() {
 		case 0x09: instrADDIU(instr); break;
 		case 0x0F: instrLUI(instr); break;
 		case 0x23: instrLW(instr); break;
+		case 0x2B: instrSW(instr); break;
 
 		default:
 			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
@@ -130,4 +131,14 @@ void instrBNE(u32 instr) {
 	delayQueue = 2;
 	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrSW(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	printf(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%08X]\n", t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X from GPR[%d] to 0x%08X\n", gpr[t], t, addr);
+	writeu32(addr, gpr[t]);
 }
