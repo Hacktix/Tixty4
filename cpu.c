@@ -69,13 +69,15 @@ int cpuExec() {
 			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
 			return -1;
 		}
+	}
+	else
+		printf(" [ INF ] Executing: NOP\n");
 
-		if (delayQueue > 0 && --delayQueue == 0) {
-			if (branchDecision) {
-				branchDecision = 0;
-				pc = delaySlot;
-				printf(" [ INF ] Jumping to 0x%08X (Branch Decision)\n", pc);
-			}
+	if (delayQueue > 0 && --delayQueue == 0) {
+		if (branchDecision) {
+			branchDecision = 0;
+			pc = delaySlot;
+			printf(" [ INF ] Jumping to 0x%08X (Branch Decision)\n", pc);
 		}
 	}
 
@@ -124,7 +126,7 @@ void instrBNE(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	delaySlot = pc + 4*f;
-	branchDecision = (gpr[s] != gpr[t]);
+	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
 	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
