@@ -127,7 +127,7 @@ void instrLW(u32 instr) {
 void instrBNE(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u16 f = instr & 0xFFFF;
+	i16 f = instr & 0xFFFF;
 	delaySlot = pc + 4*f;
 	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
