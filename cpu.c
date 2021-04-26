@@ -49,6 +49,17 @@ int cpuExec() {
 	if (instr != 0) {
 		switch (opcode) {
 
+		case 0x00: {
+			u8 type = instr & 0x3F;
+			switch (type) {
+			case 0x25: instrOR(instr); break;
+			default:
+				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
+				return -1;
+			}
+		}
+		break;
+
 		case 0x10: {
 			u8 type = (instr >> 21) & 0x1F;
 			switch (type) {
@@ -58,7 +69,7 @@ int cpuExec() {
 				return -1;
 			}
 		}
-				 break;
+		break;
 
 		case 0x05: instrBNE(instr); break;
 		case 0x08: instrADDI(instr); break;
@@ -163,4 +174,16 @@ void instrADDI(u32 instr) {
 	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
+}
+
+
+
+void instrOR(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] | gpr[t];
+	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X|0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
 }
