@@ -16,6 +16,9 @@ int cpuInit() {
 	for (int i = 0; i < 31; i++)
 		cop0Reg[i] = 0;
 
+	delayQueue = 0;
+	branchDecision = 0;
+
 	cpuInitPIF();
 	return 0;
 }
@@ -38,30 +41,42 @@ void cpuInitPIF() {
 }
 
 int cpuExec() {
+
 	u32 instr = readu32(pc);
 	u8 opcode = (instr >> 26) & 0x3F;
 	pc += 4;
 
-	switch (opcode) {
+	if (instr != 0) {
+		switch (opcode) {
 
-	case 0x10: {
-		u8 type = (instr >> 21) & 0x1F;
-		switch (type) {
-		case 0x04: instrMTC0(instr); break;
+		case 0x10: {
+			u8 type = (instr >> 21) & 0x1F;
+			switch (type) {
+			case 0x04: instrMTC0(instr); break;
+			default:
+				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
+				return -1;
+			}
+		}
+				 break;
+
+		case 0x05: instrBNE(instr); break;
+		case 0x09: instrADDIU(instr); break;
+		case 0x0F: instrLUI(instr); break;
+		case 0x23: instrLW(instr); break;
+
 		default:
 			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
 			return -1;
 		}
-	}
-		break;
 
-	case 0x09: instrADDIU(instr); break;
-	case 0x0F: instrLUI(instr); break;
-	case 0x23: instrLW(instr); break;
-
-	default:
-		printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc-4);
-		return -1;
+		if (delayQueue > 0 && --delayQueue == 0) {
+			if (branchDecision) {
+				branchDecision = 0;
+				pc = delaySlot;
+				printf(" [ INF ] Jumping to 0x%08X (Branch Decision)\n", pc);
+			}
+		}
 	}
 
 	return 0;
@@ -102,4 +117,15 @@ void instrLW(u32 instr) {
 	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%08X]\n", t, f, b, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (from 0x%08X) to GPR[%d]\n", w, addr, t);
 	gpr[t] = w;
+}
+
+void instrBNE(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u16 f = instr & 0xFFFF;
+	delaySlot = pc + 4*f;
+	branchDecision = (gpr[s] != gpr[t]);
+	delayQueue = 2;
+	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }

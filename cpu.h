@@ -1,5 +1,6 @@
 #pragma once
 #include "main.h"
+#include <stdlib.h>
 
 #define GPR_ZERO 0
 #define GPR_AT 1
@@ -71,6 +72,10 @@ long long* gpr;
 long long* cop0Reg;
 long long pc;
 
+long long delaySlot;
+int delayQueue;
+int branchDecision;
+
 int cpuInit();
 void cpuInitPIF();
 
@@ -80,3 +85,4 @@ void instrMTC0(u32 instr);
 void instrLUI(u32 instr);
 void instrADDIU(u32 instr);
 void instrLW(u32 instr);
+void instrBNE(u32 instr);
