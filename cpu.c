@@ -61,6 +61,7 @@ int cpuExec() {
 				 break;
 
 		case 0x05: instrBNE(instr); break;
+		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
 		case 0x0D: instrORI(instr); break;
 		case 0x0F: instrLUI(instr); break;
@@ -151,5 +152,15 @@ void instrORI(u32 instr) {
 	u64 r = gpr[s] | (u64)f;
 	printf(" [ INF ] Executing: ORI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X|0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	gpr[t] = r;
+}
+
+void instrADDI(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 k = instr & 0xFFFF;
+	i32 r = gpr[s] + k;
+	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }

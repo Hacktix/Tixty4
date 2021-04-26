@@ -88,3 +88,4 @@ void instrLW(u32 instr);
 void instrBNE(u32 instr);
 void instrSW(u32 instr);
 void instrORI(u32 instr);
+void instrADDI(u32 instr);
