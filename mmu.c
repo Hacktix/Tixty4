@@ -38,6 +38,65 @@ u8 readu8(long long vaddr) {
         return 0xFF;
 }
 
+u16 readu16(long long vaddr) {
+    if (vaddr < 0x80000000)           // KUSEG
+        return 0xFFFF;
+    else if (vaddr < 0xA0000000)      // KSEG0
+        return (readPhys(vaddr & 0x1FFFFFFF) << 8) | readPhys((vaddr + 1) & 0x1FFFFFFF);
+    else if (vaddr < 0xC0000000)      // KSEG1
+        return (readPhys(vaddr & 0x1FFFFFFF) << 8) | readPhys((vaddr + 1) & 0x1FFFFFFF);
+    else if (vaddr < 0xC0000000)      // KSSEG
+        return 0xFFFF;
+    else                              // KSEG3
+        return 0xFFFF;
+}
+
+u32 readu32(long long vaddr) {
+    if (vaddr < 0x80000000)           // KUSEG
+        return 0xFFFF;
+    else if (vaddr < 0xA0000000)      // KSEG0
+        return (readPhys(vaddr & 0x1FFFFFFF) << 24) |
+        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 16) |
+        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 8) |
+        (readPhys((vaddr + 3) & 0x1FFFFFFF));
+    else if (vaddr < 0xC0000000)      // KSEG1
+        return (readPhys(vaddr & 0x1FFFFFFF) << 24) |
+        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 16) |
+        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 8) |
+        (readPhys((vaddr + 3) & 0x1FFFFFFF));
+    else if (vaddr < 0xC0000000)      // KSSEG
+        return 0xFFFF;
+    else                              // KSEG3
+        return 0xFFFF;
+}
+
+u64 readu64(long long vaddr) {
+    if (vaddr < 0x80000000)           // KUSEG
+        return 0xFFFFFFFF;
+    else if (vaddr < 0xA0000000)      // KSEG0
+        return (readPhys(vaddr & 0x1FFFFFFF) << 56) |
+        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 48) |
+        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 40) |
+        (readPhys((vaddr + 3) & 0x1FFFFFFF) << 32) |
+        (readPhys((vaddr + 4) & 0x1FFFFFFF) << 24) |
+        (readPhys((vaddr + 5) & 0x1FFFFFFF) << 16) |
+        (readPhys((vaddr + 6) & 0x1FFFFFFF) << 8) |
+        (readPhys((vaddr + 7) & 0x1FFFFFFF));
+    else if (vaddr < 0xC0000000)      // KSEG1
+        return (readPhys(vaddr & 0x1FFFFFFF) << 56) |
+        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 48) |
+        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 40) |
+        (readPhys((vaddr + 3) & 0x1FFFFFFF) << 32) |
+        (readPhys((vaddr + 4) & 0x1FFFFFFF) << 24) |
+        (readPhys((vaddr + 5) & 0x1FFFFFFF) << 16) |
+        (readPhys((vaddr + 6) & 0x1FFFFFFF) << 8) |
+        (readPhys((vaddr + 7) & 0x1FFFFFFF));
+    else if (vaddr < 0xC0000000)      // KSSEG
+        return 0xFFFFFFFF;
+    else                              // KSEG3
+        return 0xFFFFFFFF;
+}
+
 void writeu8(long long vaddr, u8 val) {
     if (vaddr < 0x80000000)           // KUSEG
         return;
