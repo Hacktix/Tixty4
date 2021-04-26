@@ -52,6 +52,7 @@ int cpuExec() {
 		case 0x00: {
 			u8 type = instr & 0x3F;
 			switch (type) {
+			case 0x08: instrJR(instr); break;
 			case 0x25: instrOR(instr); break;
 			default:
 				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
@@ -209,6 +210,15 @@ void instrBEQL(u32 instr) {
 		pc += 4;
 	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrJR(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	delaySlot = gpr[s];
+	branchDecision = 1;
+	delayQueue = 2;
+	printf(" [ INF ] Executing: JR %d [PC=0x%08X]\n", s, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to Delay Slot\n", delaySlot);
 }
 
 

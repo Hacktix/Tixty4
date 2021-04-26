@@ -24,6 +24,11 @@ int mmuInit(FILE* romf) {
     if (SPDmem == NULL)
         return -1;
 
+    // Initialize SP IMEM
+    SPImem = malloc(0x1000);
+    if (SPImem == NULL)
+        return -1;
+
     // Initialize RI Registers
     RIreg = malloc(32);
     if (RIreg == NULL)
@@ -122,6 +127,7 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04002000) {
         // SP IMEM
+        return SPImem[paddr & 0xFFF];
     }
     else if (paddr < 0x04040000) {
         // Unused
@@ -210,6 +216,7 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04002000) {
         // SP IMEM
+        SPImem[paddr & 0xFFF] = val;
     }
     else if (paddr < 0x04040000) {
         // Unused
