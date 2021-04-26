@@ -47,13 +47,13 @@ int cpuExec() {
 	case 0x10: {
 		u8 type = (instr >> 21) & 0x1F;
 		switch (type) {
-		case 0x04: instrMTC0(instr);
+		case 0x04: instrMTC0(instr); break;
 		default:
 			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
 			return -1;
 		}
 	}
-
+		break;
 	default:
 		printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc-4);
 		return -1;
@@ -66,6 +66,6 @@ void instrMTC0(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	printf(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%08X]\n", t, d, pc - 4);
-	printf(" [ INF ] Writing 0x%08X from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
+	printf(" [ INF ]   Writing 0x%08X from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
 	cop0Reg[d] = gpr[t];
 }
