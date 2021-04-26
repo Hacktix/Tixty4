@@ -126,7 +126,7 @@ void instrBNE(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	delaySlot = pc + 4*f;
-	branchDecision = (gpr[s] == gpr[t]);
+	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
 	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
