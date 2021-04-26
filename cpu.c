@@ -71,6 +71,7 @@ int cpuExec() {
 		}
 		break;
 
+		case 0x03: instrJAL(instr); break;
 		case 0x05: instrBNE(instr); break;
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
@@ -174,6 +175,16 @@ void instrADDI(u32 instr) {
 	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
+}
+
+void instrJAL(u32 instr) {
+	u64 target = ((u64)(instr << 2) & 0xFFFFFFF);
+	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
+	delayQueue = 2;
+	branchDecision = 1;
+	printf(" [ INF ] Executing: JAL %07X [PC=0x%08X]\n", target, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to Delay Slot, 0x%08X to GPR[31]\n", delaySlot, pc);
+	gpr[GPR_RA] = pc;
 }
 
 
