@@ -57,6 +57,7 @@ int cpuExec() {
 
 	case 0x09: instrADDIU(instr); break;
 	case 0x0F: instrLUI(instr); break;
+	case 0x23: instrLW(instr); break;
 
 	default:
 		printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc-4);
@@ -90,4 +91,15 @@ void instrADDIU(u32 instr) {
 	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
+}
+
+void instrLW(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u32 w = readu32(addr);
+	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%08X]\n", t, f, b, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (from 0x%08X) to GPR[%d]\n", w, addr, t);
+	gpr[t] = w;
 }

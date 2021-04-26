@@ -79,3 +79,4 @@ int cpuExec();
 void instrMTC0(u32 instr);
 void instrLUI(u32 instr);
 void instrADDIU(u32 instr);
+void instrLW(u32 instr);

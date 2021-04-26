@@ -19,85 +19,63 @@ int mmuInit(FILE* romf) {
 
 	printf(" [ INF ] Loaded ROM (%d bytes)\n\n", rom_size);
 
-	SPDmem = malloc(0x1000);
-	if (SPDmem == NULL)
-		return -1;
+    // Initialize SP DMEM
+    SPDmem = malloc(0x1000);
+    if (SPDmem == NULL)
+        return -1;
+
+    // Initialize RI Registers
+    RIreg = malloc(32);
+    if (RIreg == NULL)
+        return -1;
+    for (int i = 0; i < 32; i++)
+        RIreg[i] = 0;
+
 	return 0;
 }
 
-u8 readu8(long long vaddr) {
-    if (vaddr < 0x80000000)           // KUSEG
+u8 readu8(u32 vaddr) {
+    if (vaddr < (u64)0x80000000)           // KUSEG
         return 0xFF;
-    else if (vaddr < 0xA0000000)      // KSEG0
+    else if (vaddr < (u64)0xA0000000)      // KSEG0
         return readPhys(vaddr & 0x1FFFFFFF);
-    else if (vaddr < 0xC0000000)      // KSEG1
+    else if (vaddr < (u64)0xC0000000)      // KSEG1
         return readPhys(vaddr & 0x1FFFFFFF);
-    else if (vaddr < 0xC0000000)      // KSSEG
+    else if (vaddr < (u64)0xE0000000)      // KSSEG
         return 0xFF;
     else                              // KSEG3
         return 0xFF;
 }
 
-u16 readu16(long long vaddr) {
-    if (vaddr < 0x80000000)           // KUSEG
-        return 0xFFFF;
-    else if (vaddr < 0xA0000000)      // KSEG0
-        return (readPhys(vaddr & 0x1FFFFFFF) << 8) | readPhys((vaddr + 1) & 0x1FFFFFFF);
-    else if (vaddr < 0xC0000000)      // KSEG1
-        return (readPhys(vaddr & 0x1FFFFFFF) << 8) | readPhys((vaddr + 1) & 0x1FFFFFFF);
-    else if (vaddr < 0xC0000000)      // KSSEG
-        return 0xFFFF;
-    else                              // KSEG3
-        return 0xFFFF;
+u16 readu16(u32 vaddr) {
+    return (((u16)readu8(vaddr)) << 8) | readu8(vaddr + 1);
 }
 
-u32 readu32(long long vaddr) {
-    if (vaddr < 0x80000000)           // KUSEG
-        return 0xFFFF;
-    else if (vaddr < 0xA0000000)      // KSEG0
-        return (readPhys(vaddr & 0x1FFFFFFF) << 24) |
-        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 16) |
-        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 8) |
-        (readPhys((vaddr + 3) & 0x1FFFFFFF));
-    else if (vaddr < 0xC0000000)      // KSEG1
-        return (readPhys(vaddr & 0x1FFFFFFF) << 24) |
-        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 16) |
-        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 8) |
-        (readPhys((vaddr + 3) & 0x1FFFFFFF));
-    else if (vaddr < 0xC0000000)      // KSSEG
-        return 0xFFFF;
-    else                              // KSEG3
-        return 0xFFFF;
+u32 readu32(u32 vaddr) {
+    return (((u32)readu16(vaddr)) << 16) | readu16(vaddr + 2);
 }
 
-u64 readu64(long long vaddr) {
-    if (vaddr < 0x80000000)           // KUSEG
-        return 0xFFFFFFFF;
-    else if (vaddr < 0xA0000000)      // KSEG0
-        return (readPhys(vaddr & 0x1FFFFFFF) << 56) |
-        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 48) |
-        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 40) |
-        (readPhys((vaddr + 3) & 0x1FFFFFFF) << 32) |
-        (readPhys((vaddr + 4) & 0x1FFFFFFF) << 24) |
-        (readPhys((vaddr + 5) & 0x1FFFFFFF) << 16) |
-        (readPhys((vaddr + 6) & 0x1FFFFFFF) << 8) |
-        (readPhys((vaddr + 7) & 0x1FFFFFFF));
-    else if (vaddr < 0xC0000000)      // KSEG1
-        return (readPhys(vaddr & 0x1FFFFFFF) << 56) |
-        (readPhys((vaddr + 1) & 0x1FFFFFFF) << 48) |
-        (readPhys((vaddr + 2) & 0x1FFFFFFF) << 40) |
-        (readPhys((vaddr + 3) & 0x1FFFFFFF) << 32) |
-        (readPhys((vaddr + 4) & 0x1FFFFFFF) << 24) |
-        (readPhys((vaddr + 5) & 0x1FFFFFFF) << 16) |
-        (readPhys((vaddr + 6) & 0x1FFFFFFF) << 8) |
-        (readPhys((vaddr + 7) & 0x1FFFFFFF));
-    else if (vaddr < 0xC0000000)      // KSSEG
-        return 0xFFFFFFFF;
-    else                              // KSEG3
-        return 0xFFFFFFFF;
+u64 readu64(u32 vaddr) {
+    return (((u64)readu32(vaddr)) << 32) | readu32(vaddr + 4);
 }
 
-void writeu8(long long vaddr, u8 val) {
+i8 readi8(u32 vaddr) {
+    return (i8)readu8(vaddr);
+}
+
+i16 readi16(u32 vaddr) {
+    return (i16)readu16(vaddr);
+}
+
+i32 readi32(u32 vaddr) {
+    return (i32)readu32(vaddr);
+}
+
+i64 readi64(u32 vaddr) {
+    return (i64)readu64(vaddr);
+}
+
+void writeu8(u32 vaddr, u8 val) {
     if (vaddr < 0x80000000)           // KUSEG
         return;
     else if (vaddr < 0xA0000000)      // KSEG0
@@ -110,7 +88,7 @@ void writeu8(long long vaddr, u8 val) {
         return;
 }
 
-u8 readPhys(long long paddr) {
+u8 readPhys(u32 paddr) {
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }
@@ -156,6 +134,10 @@ u8 readPhys(long long paddr) {
     }
     else if (paddr < 0x04800000) {
         // RDRAM Interface
+        if (paddr > 0x0470001F)
+            return 0xFF;
+        else
+            return RIreg[(paddr >> 2) & 0x1F];
     }
     else if (paddr < 0x04900000) {
         // Serial Interface
@@ -194,7 +176,7 @@ u8 readPhys(long long paddr) {
     return 0xFF;
 }
 
-void writePhys(long long paddr, u8 val) {
+void writePhys(u32 paddr, u8 val) {
     if (paddr < 0x00400000) {
         // RDRAM - built in
     }
@@ -240,6 +222,9 @@ void writePhys(long long paddr, u8 val) {
     }
     else if (paddr < 0x04800000) {
         // RDRAM Interface
+        if (paddr > 0x0470001F)
+            return;
+        RIreg[(paddr >> 2) & 0x1F] = val;
     }
     else if (paddr < 0x04900000) {
         // Serial Interface

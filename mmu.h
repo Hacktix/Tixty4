@@ -7,30 +7,31 @@ u8* rom;
 int rom_size;
 
 u8* SPDmem;
+u8* RIreg;
 
 int mmuInit(FILE* romf);
 
-u8 readu8(long long vaddr);
-u16 readu16(long long vaddr);
-u32 readu32(long long vaddr);
-u64 readu64(long long vaddr);
+u8 readu8(u64 vaddr);
+u16 readu16(u64 vaddr);
+u32 readu32(u64 vaddr);
+u64 readu64(u64 vaddr);
 
-i8 readi8(long long vaddr);
-i16 readi16(long long vaddr);
-i32 readi32(long long vaddr);
-i64 readi64(long long vaddr);
+i8 readi8(u64 vaddr);
+i16 readi16(u64 vaddr);
+i32 readi32(u64 vaddr);
+i64 readi64(u64 vaddr);
 
-void writeu8(long long vaddr, u8 val);
-void writeu16(long long vaddr, u16 val);
-void writeu32(long long vaddr, u32 val);
-void writeu64(long long vaddr, u64 val);
+void writeu8(u64 vaddr, u8 val);
+void writeu16(u64 vaddr, u16 val);
+void writeu32(u64 vaddr, u32 val);
+void writeu64(u64 vaddr, u64 val);
 
-void writei8(long long vaddr, i8 val);
-void writei16(long long vaddr, i16 val);
-void writei32(long long vaddr, i32 val);
-void writei64(long long vaddr, i64 val);
+void writei8(u64 vaddr, i8 val);
+void writei16(u64 vaddr, i16 val);
+void writei32(u64 vaddr, i32 val);
+void writei64(u64 vaddr, i64 val);
 
-u8 readPhys(long long paddr);
-void writePhys(long long paddr, u8 val);
+u8 readPhys(u64 paddr);
+void writePhys(u64 paddr, u8 val);
 
 void byteswapRom();
