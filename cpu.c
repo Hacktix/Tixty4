@@ -53,6 +53,7 @@ int cpuExec() {
 			u8 type = instr & 0x3F;
 			switch (type) {
 			case 0x08: instrJR(instr); break;
+			case 0x21: instrADDU(instr); break;
 			case 0x25: instrOR(instr); break;
 			default:
 				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
@@ -222,6 +223,16 @@ void instrJR(u32 instr) {
 }
 
 
+
+void instrADDU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] + gpr[t];
+	printf(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
+}
 
 void instrOR(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
