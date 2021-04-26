@@ -54,6 +54,9 @@ int cpuExec() {
 		}
 	}
 		break;
+
+	case 0x0F: instrLUI(instr); break;
+
 	default:
 		printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc-4);
 		return -1;
@@ -68,4 +71,12 @@ void instrMTC0(u32 instr) {
 	printf(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%08X]\n", t, d, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
 	cop0Reg[d] = gpr[t];
+}
+
+void instrLUI(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	u32 k = (instr & 0xFFFF) << 16;
+	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%08X]\n", t, (k >> 16) & 0xFFFF, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to GPR[%d]\n", k, t);
+	gpr[t] = k;
 }
