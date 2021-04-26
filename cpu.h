@@ -90,5 +90,6 @@ void instrSW(u32 instr);
 void instrORI(u32 instr);
 void instrADDI(u32 instr);
 void instrJAL(u32 instr);
+void instrSLTI(u32 instr);
 
 void instrOR(u32 instr);

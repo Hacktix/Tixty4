@@ -75,6 +75,7 @@ int cpuExec() {
 		case 0x05: instrBNE(instr); break;
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
+		case 0x0A: instrSLTI(instr); break;
 		case 0x0D: instrORI(instr); break;
 		case 0x0F: instrLUI(instr); break;
 		case 0x23: instrLW(instr); break;
@@ -185,6 +186,15 @@ void instrJAL(u32 instr) {
 	printf(" [ INF ] Executing: JAL %07X [PC=0x%08X]\n", target, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot, 0x%08X to GPR[31]\n", delaySlot, pc);
 	gpr[GPR_RA] = pc;
+}
+
+void instrSLTI(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i64 k = (instr & 0xFFFF) | (instr & 0x8000 ? 0xFFFFFFFFFFFF0000 : 0);
+	gpr[t] = ((i64)gpr[s]) < k;
+	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%08X]\n", t, s, instr & 0xFFFF, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[t], gpr[s], k, t);
 }
 
 
