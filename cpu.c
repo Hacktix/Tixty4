@@ -84,6 +84,7 @@ int cpuExec() {
 		}
 		break;
 
+		case 0x01: instrBGEZL(instr); break;
 		case 0x03: instrJAL(instr); break;
 		case 0x04: instrBEQ(instr); break;
 		case 0x05: instrBNE(instr); break;
@@ -323,6 +324,18 @@ void instrLBU(u32 instr) {
 	printf(" [ INF ] Executing: LBU %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%02X from 0x%016llX to GPR[%d]\n", v, addr, t);
 	gpr[t] = v;
+}
+
+void instrBGEZL(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	delaySlot = pc + 4 * f;
+	branchDecision = ((i32)gpr[s]) >= 0;
+	delayQueue = 2;
+	if (!branchDecision)
+		pc += 4;
+	printf(" [ INF ] Executing: BGEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 

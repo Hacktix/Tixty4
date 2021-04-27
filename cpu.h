@@ -105,6 +105,7 @@ void instrBNEL(u32 instr);
 void instrBLEZL(u32 instr);
 void instrSB(u32 instr);
 void instrLBU(u32 instr);
+void instrBGEZL(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);
