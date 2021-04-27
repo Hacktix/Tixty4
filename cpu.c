@@ -135,11 +135,12 @@ void instrLUI(u32 instr) {
 void instrADDIU(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 k = instr & 0xFFFF;
-	u64 r = (u64)(gpr[s] + (i64)k);
+	i32 k = (i32)s16ext32(instr & 0xFFFF);
+	u64 r = s32ext64((u32)(gpr[s] + k));
 	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
+	getchar();
 }
 
 void instrLW(u32 instr) {
