@@ -66,6 +66,7 @@ int cpuExec() {
 			case 0x23: instrSUBU(instr); break;
 			case 0x24: instrAND(instr); break;
 			case 0x25: instrOR(instr); break;
+			case 0x26: instrXOR(instr); break;
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
@@ -399,6 +400,16 @@ void instrOR(u32 instr) {
 	u64 r = gpr[s] | gpr[t];
 	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
+}
+
+void instrXOR(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] ^ gpr[t];
+	printf(" [ INF ] Executing: XOR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
