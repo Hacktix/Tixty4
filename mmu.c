@@ -6,6 +6,12 @@
 #define N64_IDENTIFIER 0x40123780
 #define V64_IDENTIFIER 0x37804012
 
+#define PI_BASE_REG      0x04600000
+#define PI_DRAM_ADDR_REG 0x0
+#define PI_CART_ADDR_REG 0x4
+#define PI_RD_LEN_REG    0x8
+#define PI_WR_LEN_REG    0xC
+
 int mmuInit(FILE* romf) {
 	// Get File Size
 	fseek(romf, 0L, SEEK_END);
@@ -40,6 +46,13 @@ int mmuInit(FILE* romf) {
         return -1;
     for (int i = 0; i < 0x20; i++)
         RIreg[i] = 0;
+
+    // Initialize PI Registers
+    PIreg = malloc(0x34);
+    if (PIreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x34; i++)
+        PIreg[i] = 0;
 
     // Initialize RDRAM Registers
     RDRAMreg = malloc(0x28);
@@ -191,6 +204,9 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04700000) {
         // Peripheral Interface
+        if (paddr > 0x04600034)
+            return 0xFF;
+        return PIreg[paddr & 0x3F];
     }
     else if (paddr < 0x04800000) {
         // RDRAM Interface
@@ -296,6 +312,18 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04700000) {
         // Peripheral Interface
+        if (paddr > 0x04600034)
+            return;
+        PIreg[paddr & 0x3F] = val;
+        if (paddr == PI_BASE_REG + PI_WR_LEN_REG + 3) {
+            u32 dramAddr = getu32((u32*)(PIreg + PI_DRAM_ADDR_REG));
+            u32 cartAddr = getu32((u32*)(PIreg + PI_CART_ADDR_REG));
+            u32 readLen = getu32((u32*)(PIreg + PI_WR_LEN_REG)) + 1;
+            printf(" [ INF ] Initiating DMA from 0x%08X to 0x%08X (0x%08X bytes)\n", cartAddr, dramAddr, readLen);
+            for (u32 i = 0; i < readLen; i++)
+                writePhys(dramAddr + i, readPhys(cartAddr + i));
+        }
+        return;
     }
     else if (paddr < 0x04800000) {
         // RDRAM Interface
@@ -381,4 +409,9 @@ void byteswapRom() {
     default:
         printf(" [ INF ] Unknown ROM Format %lX! Issues may occur.\n", ident);
     }
+}
+
+u32 getu32(u32* ptr) {
+    u32 v = *ptr;
+    return ((v & 0xFF000000) >> 24) | ((v & 0x00FF0000) >> 8) | ((v & 0x0000FF00) << 8) | ((v & 0x000000FF) << 24);
 }

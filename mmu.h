@@ -12,6 +12,7 @@ u8* SPImem;
 u8* RIreg;
 u8* MIreg;
 u8* RDRAMreg;
+u8* PIreg;
 
 int mmuInit(FILE* romf);
 
@@ -39,3 +40,5 @@ u8 readPhys(u64 paddr);
 void writePhys(u64 paddr, u8 val);
 
 void byteswapRom();
+
+u32 getu32(u32* ptr);
