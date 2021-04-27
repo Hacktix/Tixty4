@@ -343,7 +343,7 @@ void instrSRL(u32 instr) {
 	char k = (instr >> 6) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u64 r = gpr[t] >> k;
+	u64 r = s32ext64((u32)(gpr[t] >> k));
 	printf(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
@@ -353,10 +353,11 @@ void instrSLL(u32 instr) {
 	char k = (instr >> 6) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u64 r = gpr[t] << k;
+	u64 r = s32ext64((u32)(gpr[t] << k));
 	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
+	getchar();
 }
 
 void instrSLT(u32 instr) {
