@@ -10,6 +10,8 @@ u8* RDRAM;
 u8* SPDmem;
 u8* SPImem;
 u8* RIreg;
+u8* MIreg;
+u8* RDRAMreg;
 
 int mmuInit(FILE* romf);
 

@@ -35,11 +35,25 @@ int mmuInit(FILE* romf) {
         return -1;
 
     // Initialize RI Registers
-    RIreg = malloc(32);
+    RIreg = malloc(0x20);
     if (RIreg == NULL)
         return -1;
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < 0x20; i++)
         RIreg[i] = 0;
+
+    // Initialize RDRAM Registers
+    RDRAMreg = malloc(0x28);
+    if (RDRAMreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x28; i++)
+        RDRAMreg[i] = 0;
+
+    // Initialize MI Registers
+    MIreg = malloc(0x10);
+    if (MIreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x10; i++)
+        MIreg[i] = 0;
 
 	return 0;
 }
@@ -137,6 +151,10 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04000000) {
         // RDRAM Registers
+        if (paddr > 0x03F00027)
+            return 0xFF;
+        else
+            return RDRAMreg[paddr & 0x3F];
     }
     else if (paddr < 0x04001000) {
         // SP DMEM
@@ -160,6 +178,10 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04400000) {
         // MIPS Interface
+        if (paddr > 0x0430000F)
+            return 0xFF;
+        else
+            return MIreg[paddr & 0xF];
     }
     else if (paddr < 0x04500000) {
         // Video Interface
@@ -175,7 +197,7 @@ u8 readPhys(u32 paddr) {
         if (paddr > 0x0470001F)
             return 0xFF;
         else
-            return RIreg[(paddr >> 2) & 0x1F];
+            return RIreg[paddr & 0x1F];
     }
     else if (paddr < 0x04900000) {
         // Serial Interface
@@ -231,6 +253,11 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04000000) {
         // RDRAM Registers
+        if (paddr > 0x03F00027)
+            return;
+        else
+            RDRAMreg[paddr & 0x3F] = val;
+        return;
     }
     else if (paddr < 0x04001000) {
         // SP DMEM
@@ -256,6 +283,10 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04400000) {
         // MIPS Interface
+        if (paddr > 0x0430000F)
+            return;
+        MIreg[paddr & 0xF] = val;
+        return;
     }
     else if (paddr < 0x04500000) {
         // Video Interface
@@ -270,7 +301,7 @@ void writePhys(u32 paddr, u8 val) {
         // RDRAM Interface
         if (paddr > 0x0470001F)
             return;
-        RIreg[(paddr >> 2) & 0x1F] = val;
+        RIreg[paddr & 0x1F] = val;
         return;
     }
     else if (paddr < 0x04900000) {
