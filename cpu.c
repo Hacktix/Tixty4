@@ -90,6 +90,7 @@ int cpuExec() {
 		case 0x0E: instrXORI(instr); break;
 		case 0x0F: instrLUI(instr); break;
 		case 0x14: instrBEQL(instr); break;
+		case 0x15: instrBNEL(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
@@ -211,6 +212,19 @@ void instrSLTI(u32 instr) {
 }
 
 void instrBEQL(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	delaySlot = pc + 4 * f;
+	branchDecision = (gpr[s] == gpr[t]);
+	delayQueue = 2;
+	if (!branchDecision)
+		pc += 4;
+	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrBNEL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	i16 f = instr & 0xFFFF;

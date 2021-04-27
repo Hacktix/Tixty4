@@ -98,6 +98,7 @@ void instrXORI(u32 instr);
 void instrSLL(u32 instr);
 void instrBEQ(u32 instr);
 void instrCACHE(u32 instr);
+void instrBNEL(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);
