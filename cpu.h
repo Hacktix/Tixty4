@@ -115,6 +115,7 @@ void instrMULTU(u32 instr);
 void instrOR(u32 instr);
 void instrAND(u32 instr);
 void instrSRL(u32 instr);
+void instrSRLV(u32 instr);
 void instrSLT(u32 instr);
 void instrSLTU(u32 instr);
 void instrMFLO(u32 instr);
