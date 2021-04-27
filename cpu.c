@@ -79,6 +79,7 @@ int cpuExec() {
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
 		case 0x0A: instrSLTI(instr); break;
+		case 0x0C: instrANDI(instr); break;
 		case 0x0D: instrORI(instr); break;
 		case 0x0F: instrLUI(instr); break;
 		case 0x14: instrBEQL(instr); break;
@@ -221,6 +222,16 @@ void instrJR(u32 instr) {
 	delayQueue = 2;
 	printf(" [ INF ] Executing: JR %d [PC=0x%08X]\n", s, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot\n", delaySlot);
+}
+
+void instrANDI(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u16 f = instr & 0xFFFF;
+	u64 r = gpr[s] & (u64)f;
+	printf(" [ INF ] Executing: ANDI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X&0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	gpr[t] = r;
 }
 
 
