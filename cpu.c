@@ -208,7 +208,7 @@ void instrJAL(u32 instr) {
 void instrSLTI(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i64 k = (instr & 0xFFFF) | (instr & 0x8000 ? 0xFFFFFFFFFFFF0000 : 0);
+	i64 k = s16ext64(instr & 0xFFFF);
 	gpr[t] = ((i64)gpr[s]) < k;
 	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, instr & 0xFFFF, pc - 4);
 	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[t], gpr[s], k, t);
