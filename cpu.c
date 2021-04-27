@@ -62,7 +62,7 @@ int cpuExec() {
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
 				return -1;
 			}
 		}
@@ -73,7 +73,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x04: instrMTC0(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
 				return -1;
 			}
 		}
@@ -95,18 +95,18 @@ int cpuExec() {
 		case 0x2F: instrCACHE(instr); break;
 
 		default:
-			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
+			printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
 			return -1;
 		}
 	}
 	else
-		printf(" [ INF ] Executing: NOP [PC=0x%08X]\n", pc-4);
+		printf(" [ INF ] Executing: NOP [PC=0x%016llX]\n", pc-4);
 
 	if (delayQueue > 0 && --delayQueue == 0) {
 		if (branchDecision) {
 			branchDecision = 0;
 			pc = delaySlot;
-			printf(" [ INF ] Jumping to 0x%08X (Branch Decision)\n", pc);
+			printf(" [ INF ] Jumping to 0x%016llX (Branch Decision)\n", pc);
 		}
 	}
 
@@ -116,16 +116,16 @@ int cpuExec() {
 void instrMTC0(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	printf(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%08X]\n", t, d, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
+	printf(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
 	cop0Reg[d] = gpr[t];
 }
 
 void instrLUI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u32 k = (instr & 0xFFFF) << 16;
-	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%08X]\n", t, (k >> 16) & 0xFFFF, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to GPR[%d]\n", k, t);
+	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%016llX]\n", t, (k >> 16) & 0xFFFF, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to GPR[%d]\n", k, t);
 	gpr[t] = k;
 }
 
@@ -133,9 +133,9 @@ void instrADDIU(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	i16 k = instr & 0xFFFF;
-	i32 r = gpr[s] + k;
-	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
+	u64 r = (u64)(gpr[s] + (i64)k);
+	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }
 
@@ -145,8 +145,8 @@ void instrLW(u32 instr) {
 	u16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
 	u32 w = readu32(addr);
-	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%08X]\n", t, f, b, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (from 0x%08X) to GPR[%d]\n", w, addr, t);
+	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (from 0x%016llX) to GPR[%d]\n", w, addr, t);
 	gpr[t] = w;
 }
 
@@ -157,8 +157,8 @@ void instrBNE(u32 instr) {
 	delaySlot = pc + 4*f;
 	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
-	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrSW(u32 instr) {
@@ -166,8 +166,8 @@ void instrSW(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
-	printf(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%08X]\n", t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X from GPR[%d] to 0x%08X\n", gpr[t], t, addr);
+	printf(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
 	writeu32(addr, gpr[t]);
 }
 
@@ -176,8 +176,8 @@ void instrORI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] | (u64)f;
-	printf(" [ INF ] Executing: ORI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X|0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	printf(" [ INF ] Executing: ORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -186,8 +186,8 @@ void instrADDI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i16 k = instr & 0xFFFF;
 	i32 r = gpr[s] + k;
-	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%08X]\n", t, s, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
+	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }
 
@@ -196,8 +196,8 @@ void instrJAL(u32 instr) {
 	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
 	delayQueue = 2;
 	branchDecision = 1;
-	printf(" [ INF ] Executing: JAL %07X [PC=0x%08X]\n", target, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to Delay Slot, 0x%08X to GPR[31]\n", delaySlot, pc);
+	printf(" [ INF ] Executing: JAL %07X [PC=0x%016llX]\n", target, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[31]\n", delaySlot, pc);
 	gpr[GPR_RA] = pc;
 }
 
@@ -206,8 +206,8 @@ void instrSLTI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i64 k = (instr & 0xFFFF) | (instr & 0x8000 ? 0xFFFFFFFFFFFF0000 : 0);
 	gpr[t] = ((i64)gpr[s]) < k;
-	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%08X]\n", t, s, instr & 0xFFFF, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[t], gpr[s], k, t);
+	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, instr & 0xFFFF, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[t], gpr[s], k, t);
 }
 
 void instrBEQL(u32 instr) {
@@ -219,8 +219,8 @@ void instrBEQL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrJR(u32 instr) {
@@ -228,8 +228,8 @@ void instrJR(u32 instr) {
 	delaySlot = gpr[s];
 	branchDecision = 1;
 	delayQueue = 2;
-	printf(" [ INF ] Executing: JR %d [PC=0x%08X]\n", s, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to Delay Slot\n", delaySlot);
+	printf(" [ INF ] Executing: JR %d [PC=0x%016llX]\n", s, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot\n", delaySlot);
 }
 
 void instrANDI(u32 instr) {
@@ -237,8 +237,8 @@ void instrANDI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] & (u64)f;
-	printf(" [ INF ] Executing: ANDI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X&0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	printf(" [ INF ] Executing: ANDI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -247,8 +247,8 @@ void instrXORI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] ^ (u64)f;
-	printf(" [ INF ] Executing: XORI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X^0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	printf(" [ INF ] Executing: XORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -259,12 +259,12 @@ void instrBEQ(u32 instr) {
 	delaySlot = pc + 4 * f;
 	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
-	printf(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	printf(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrCACHE(u32 instr) {
-	printf(" [ INF ] Executing: CACHE [PC=0x%08X]\n", pc - 4);
+	printf(" [ INF ] Executing: CACHE [PC=0x%016llX]\n", pc - 4);
 	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
 }
 
@@ -275,8 +275,8 @@ void instrADDU(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] + gpr[t];
-	printf(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	printf(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -285,8 +285,8 @@ void instrADD(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] + gpr[t];
-	printf(" [ INF ] Executing: ADD %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	printf(" [ INF ] Executing: ADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -295,8 +295,8 @@ void instrOR(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] | gpr[t];
-	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X|0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -305,8 +305,8 @@ void instrAND(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] & gpr[t];
-	printf(" [ INF ] Executing: AND %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X&0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	printf(" [ INF ] Executing: AND %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -315,8 +315,8 @@ void instrSRL(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	u64 r = gpr[t] >> k;
-	printf(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%08X]\n", d, t, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X>>%d) to GPR[%d]\n", r, gpr[t], k, d);
+	printf(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
 
@@ -325,8 +325,8 @@ void instrSLL(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	u64 r = gpr[t] << k;
-	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%08X]\n", d, t, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%08X (=0x%08X<<%d) to GPR[%d]\n", r, gpr[t], k, d);
+	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
 
@@ -335,15 +335,15 @@ void instrSLT(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	gpr[d] = ((i64)gpr[s]) < ((i64)gpr[t]);
-	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
 
 void instrSLTU(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	gpr[d] = ((u64)gpr[s]) < ((u64)gpr[t]);
-	printf(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+	gpr[d] = gpr[s] < gpr[t];
+	printf(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }

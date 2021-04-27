@@ -68,9 +68,9 @@
 #define CP0R_ErrorEPC 30
 #define CP0R_31 31
 
-long long* gpr;
-long long* cop0Reg;
-long long pc;
+u64* gpr;
+u64* cop0Reg;
+u64 pc;
 
 long long delaySlot;
 int delayQueue;
