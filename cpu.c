@@ -188,8 +188,8 @@ void instrORI(u32 instr) {
 void instrADDI(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 k = instr & 0xFFFF;
-	i32 r = gpr[s] + k;
+	i32 k = (i32)s16ext32(instr & 0xFFFF);
+	u64 r = s32ext64((u32)(gpr[s] + k));
 	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;

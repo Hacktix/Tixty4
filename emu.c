@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DBG_BRK 0
+#define DBG_BRK 0x00000000A40000AC
 
 void emuStart(FILE* romf) {
     hitDbgBrk = 0;
