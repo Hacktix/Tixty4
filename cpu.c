@@ -58,6 +58,7 @@ int cpuExec() {
 			case 0x20: instrADD(instr); break;
 			case 0x21: instrADDU(instr); break;
 			case 0x25: instrOR(instr); break;
+			case 0x2A: instrSLT(instr); break;
 			default:
 				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
 				return -1;
@@ -257,6 +258,15 @@ void instrBEQ(u32 instr) {
 	delayQueue = 2;
 	printf(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrSLT(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	gpr[d] = ((i64)gpr[s]) < ((i64)gpr[t]);
+	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
 
 
