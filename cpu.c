@@ -56,6 +56,7 @@ int cpuExec() {
 			case 0x00: instrSLL(instr); break;
 			case 0x02: instrSRL(instr); break;
 			case 0x08: instrJR(instr); break;
+			case 0x12: instrMFLO(instr); break;
 			case 0x19: instrMULTU(instr); break;
 			case 0x20: instrADD(instr); break;
 			case 0x21: instrADDU(instr); break;
@@ -408,4 +409,11 @@ void instrSLTU(u32 instr) {
 	gpr[d] = gpr[s] < gpr[t];
 	printf(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+}
+
+void instrMFLO(u32 instr) {
+	char d = (instr >> 11) & 0x1F;
+	printf(" [ INF ] Executing: MFLO %02d [PC=0x%016llX]\n", d, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from LO to GPR[%d]\n", loReg, d);
+	gpr[d] = loReg;
 }
