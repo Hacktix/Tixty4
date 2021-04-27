@@ -126,7 +126,7 @@ void instrMTC0(u32 instr) {
 
 void instrLUI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
-	u32 k = (instr & 0xFFFF) << 16;
+	u64 k = s32ext64((instr & 0xFFFF) << 16);
 	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%016llX]\n", t, (k >> 16) & 0xFFFF, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX to GPR[%d]\n", k, t);
 	gpr[t] = k;
@@ -140,17 +140,17 @@ void instrADDIU(u32 instr) {
 	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
-	getchar();
 }
 
 void instrLW(u32 instr) {
 	char b = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u16 f = instr & 0xFFFF;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
 	u32 addr = gpr[b] + f;
 	u32 w = readu32(addr);
+	u64 r = s32ext64(w);
 	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (from 0x%016llX) to GPR[%d]\n", w, addr, t);
+	printf(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
 	gpr[t] = w;
 }
 
