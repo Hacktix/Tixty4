@@ -57,6 +57,7 @@ int cpuExec() {
 			case 0x08: instrJR(instr); break;
 			case 0x20: instrADD(instr); break;
 			case 0x21: instrADDU(instr); break;
+			case 0x24: instrAND(instr); break;
 			case 0x25: instrOR(instr); break;
 			case 0x2A: instrSLT(instr); break;
 			default:
@@ -90,6 +91,7 @@ int cpuExec() {
 		case 0x14: instrBEQL(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x2B: instrSW(instr); break;
+		case 0x2F: instrCACHE(instr); break;
 
 		default:
 			printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
@@ -269,6 +271,11 @@ void instrSLT(u32 instr) {
 	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
 
+void instrCACHE(u32 instr) {
+	printf(" [ INF ] Executing: CACHE [PC=0x%08X]\n", pc - 4);
+	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.");
+}
+
 
 
 void instrADDU(u32 instr) {
@@ -298,6 +305,16 @@ void instrOR(u32 instr) {
 	u64 r = gpr[s] | gpr[t];
 	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X|0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
+}
+
+void instrAND(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] & gpr[t];
+	printf(" [ INF ] Executing: AND %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X&0x%08X) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
