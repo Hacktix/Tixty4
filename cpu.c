@@ -60,6 +60,7 @@ int cpuExec() {
 			case 0x24: instrAND(instr); break;
 			case 0x25: instrOR(instr); break;
 			case 0x2A: instrSLT(instr); break;
+			case 0x2B: instrSLTU(instr); break;
 			default:
 				printf("\n [ ERR ] Unimplemented Instruction 0x%08X at PC=0x%08X\n", instr, pc - 4);
 				return -1;
@@ -262,18 +263,9 @@ void instrBEQ(u32 instr) {
 	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
-void instrSLT(u32 instr) {
-	char s = (instr >> 21) & 0x1F;
-	char t = (instr >> 16) & 0x1F;
-	char d = (instr >> 11) & 0x1F;
-	gpr[d] = ((i64)gpr[s]) < ((i64)gpr[t]);
-	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
-}
-
 void instrCACHE(u32 instr) {
 	printf(" [ INF ] Executing: CACHE [PC=0x%08X]\n", pc - 4);
-	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.");
+	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
 }
 
 
@@ -336,4 +328,22 @@ void instrSLL(u32 instr) {
 	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%08X]\n", d, t, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
+}
+
+void instrSLT(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	gpr[d] = ((i64)gpr[s]) < ((i64)gpr[t]);
+	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+}
+
+void instrSLTU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	gpr[d] = ((u64)gpr[s]) < ((u64)gpr[t]);
+	printf(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%08X]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing %d (=0x%08X<0x%08X) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
