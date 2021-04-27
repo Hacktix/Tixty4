@@ -91,6 +91,7 @@ int cpuExec() {
 		case 0x0F: instrLUI(instr); break;
 		case 0x14: instrBEQL(instr); break;
 		case 0x15: instrBNEL(instr); break;
+		case 0x16: instrBLEZL(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
@@ -233,8 +234,21 @@ void instrBNEL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	printf(" [ INF ] Executing: BNEL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrBLEZL(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	delaySlot = pc + 4 * f;
+	branchDecision = ((i32)gpr[s]) <= 0;
+	delayQueue = 2;
+	if (!branchDecision)
+		pc += 4;
+	printf(" [ INF ] Executing: BLEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	getchar();
 }
 
 void instrJR(u32 instr) {
