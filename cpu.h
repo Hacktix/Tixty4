@@ -99,5 +99,6 @@ void instrSLL(u32 instr);
 void instrBEQ(u32 instr);
 
 void instrADDU(u32 instr);
+void instrADD(u32 instr);
 void instrOR(u32 instr);
 void instrSRL(u32 instr);
