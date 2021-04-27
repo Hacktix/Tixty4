@@ -96,6 +96,7 @@ void instrJR(u32 instr);
 void instrANDI(u32 instr);
 void instrXORI(u32 instr);
 void instrSLL(u32 instr);
+void instrBEQ(u32 instr);
 
 void instrADDU(u32 instr);
 void instrOR(u32 instr);

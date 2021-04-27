@@ -76,6 +76,7 @@ int cpuExec() {
 		break;
 
 		case 0x03: instrJAL(instr); break;
+		case 0x04: instrBEQ(instr); break;
 		case 0x05: instrBNE(instr); break;
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
@@ -244,6 +245,17 @@ void instrXORI(u32 instr) {
 	printf(" [ INF ] Executing: XORI %02d, %02d, 0x%04X [PC=0x%08X]\n", t, s, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X^0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
+}
+
+void instrBEQ(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	delaySlot = pc + 4 * f;
+	branchDecision = (gpr[s] == gpr[t]);
+	delayQueue = 2;
+	printf(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%08X]\n", s, t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 
