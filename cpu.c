@@ -52,6 +52,7 @@ int cpuExec() {
 		case 0x00: {
 			u8 type = instr & 0x3F;
 			switch (type) {
+			case 0x00: instrSLL(instr); break;
 			case 0x02: instrSRL(instr); break;
 			case 0x08: instrJR(instr); break;
 			case 0x21: instrADDU(instr); break;
@@ -274,5 +275,15 @@ void instrSRL(u32 instr) {
 	u64 r = gpr[t] >> k;
 	printf(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%08X]\n", d, t, k, pc - 4);
 	printf(" [ INF ]   Writing 0x%08X (=0x%08X>>%d) to GPR[%d]\n", r, gpr[t], k, d);
+	gpr[d] = r;
+}
+
+void instrSLL(u32 instr) {
+	char k = (instr >> 6) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u64 r = gpr[t] << k;
+	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%08X]\n", d, t, k, pc - 4);
+	printf(" [ INF ]   Writing 0x%08X (=0x%08X<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
