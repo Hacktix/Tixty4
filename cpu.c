@@ -62,7 +62,7 @@ int cpuExec() {
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
 				return -1;
 			}
 		}
@@ -73,7 +73,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x04: instrMTC0(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
 				return -1;
 			}
 		}
@@ -95,7 +95,7 @@ int cpuExec() {
 		case 0x2F: instrCACHE(instr); break;
 
 		default:
-			printf("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
+			printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
 			return -1;
 		}
 	}
@@ -164,7 +164,7 @@ void instrBNE(u32 instr) {
 void instrSW(u32 instr) {
 	char b = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u16 f = instr & 0xFFFF;
+	i16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
 	printf(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
