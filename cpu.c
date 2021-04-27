@@ -63,7 +63,7 @@ int cpuExec() {
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
 		}
@@ -74,7 +74,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x04: instrMTC0(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
+				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
 		}
