@@ -303,7 +303,7 @@ void instrADDU(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	u64 r = gpr[s] + gpr[t];
+	u64 r = (u32)(gpr[s] + gpr[t]);
 	printf(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
@@ -313,7 +313,7 @@ void instrADD(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	u64 r = gpr[s] + gpr[t];
+	u64 r = (u32)(gpr[s] + gpr[t]);
 	printf(" [ INF ] Executing: ADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
