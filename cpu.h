@@ -103,6 +103,7 @@ void instrBEQ(u32 instr);
 void instrCACHE(u32 instr);
 void instrBNEL(u32 instr);
 void instrBLEZL(u32 instr);
+void instrSB(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);

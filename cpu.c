@@ -98,6 +98,7 @@ int cpuExec() {
 		case 0x15: instrBNEL(instr); break;
 		case 0x16: instrBLEZL(instr); break;
 		case 0x23: instrLW(instr); break;
+		case 0x28: instrSB(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
 
@@ -299,6 +300,17 @@ void instrBEQ(u32 instr) {
 void instrCACHE(u32 instr) {
 	printf(" [ INF ] Executing: CACHE [PC=0x%016llX]\n", pc - 4);
 	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
+}
+
+void instrSB(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u8 v = (u8)gpr[t];
+	printf(" [ INF ] Executing: SB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%02X from GPR[%d] to 0x%016llX\n", v, t, addr);
+	writeu8(addr, v);
 }
 
 
