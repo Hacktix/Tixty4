@@ -19,6 +19,11 @@ int mmuInit(FILE* romf) {
 
 	printf(" [ INF ] Loaded ROM (%d bytes)\n\n", rom_size);
 
+    // Initialize RDRAM
+    RDRAM = malloc(0x400000);
+    if (RDRAM == NULL)
+        return -1;
+
     // Initialize SP DMEM
     SPDmem = malloc(0x1000);
     if (SPDmem == NULL)
@@ -111,6 +116,7 @@ void writeu64(u32 vaddr, u64 val) {
 u8 readPhys(u32 paddr) {
     if (paddr < 0x00400000) {
         // RDRAM - built in
+        return RDRAM[paddr];
     }
     else if (paddr < 0x00800000) {
         // RDRAM - expansion pak
@@ -200,6 +206,7 @@ u8 readPhys(u32 paddr) {
 void writePhys(u32 paddr, u8 val) {
     if (paddr < 0x00400000) {
         // RDRAM - built in
+        RDRAM[paddr] = val;
     }
     else if (paddr < 0x00800000) {
         // RDRAM - expansion pak

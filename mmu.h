@@ -6,6 +6,7 @@
 u8* rom;
 int rom_size;
 
+u8* RDRAM;
 u8* SPDmem;
 u8* SPImem;
 u8* RIreg;

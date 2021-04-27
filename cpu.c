@@ -100,7 +100,7 @@ int cpuExec() {
 		}
 	}
 	else
-		printf(" [ INF ] Executing: NOP\n");
+		printf(" [ INF ] Executing: NOP [PC=0x%08X]\n", pc-4);
 
 	if (delayQueue > 0 && --delayQueue == 0) {
 		if (branchDecision) {
