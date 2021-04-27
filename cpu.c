@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "mmu.h"
+#include "signext.h"
 #include <stdio.h>
 #include <stdlib.h>
 
