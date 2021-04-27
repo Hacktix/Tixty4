@@ -56,6 +56,7 @@ int cpuExec() {
 			case 0x00: instrSLL(instr); break;
 			case 0x02: instrSRL(instr); break;
 			case 0x08: instrJR(instr); break;
+			case 0x19: instrMULTU(instr); break;
 			case 0x20: instrADD(instr); break;
 			case 0x21: instrADDU(instr); break;
 			case 0x22: instrSUB(instr); break;
@@ -339,6 +340,16 @@ void instrSUB(u32 instr) {
 	printf(" [ INF ] Executing: SUB %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX-0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
+}
+
+void instrMULTU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u64 r = (u32)gpr[s] * (u32)gpr[t];
+	hiReg = s32ext64((r >> 32) & 0xFFFFFFFF);
+	loReg = s32ext64(r & 0xFFFFFFFF);
+	printf(" [ INF ] Executing: MULTU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX*0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
 }
 
 void instrOR(u32 instr) {

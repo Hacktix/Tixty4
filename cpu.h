@@ -72,6 +72,9 @@ u64* gpr;
 u64* cop0Reg;
 u64 pc;
 
+u64 hiReg;
+u64 loReg;
+
 long long delaySlot;
 int delayQueue;
 int branchDecision;
@@ -105,6 +108,7 @@ void instrADDU(u32 instr);
 void instrADD(u32 instr);
 void instrSUBU(u32 instr);
 void instrSUB(u32 instr);
+void instrMULTU(u32 instr);
 void instrOR(u32 instr);
 void instrAND(u32 instr);
 void instrSRL(u32 instr);
