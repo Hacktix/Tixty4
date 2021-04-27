@@ -45,16 +45,27 @@ int mmuInit(FILE* romf) {
 }
 
 u8 readu8(u32 vaddr) {
-    if (vaddr < (u64)0x80000000)           // KUSEG
+    if (vaddr < (u64)0x80000000) {           // KUSEG
+        printf(" [ WRN ] Unknown Read from KUSEG (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        getchar();
         return 0xFF;
-    else if (vaddr < (u64)0xA0000000)      // KSEG0
+    }
+    else if (vaddr < (u64)0xA0000000) {      // KSEG0
         return readPhys(vaddr & 0x1FFFFFFF);
-    else if (vaddr < (u64)0xC0000000)      // KSEG1
+    }
+    else if (vaddr < (u64)0xC0000000) {      // KSEG1
         return readPhys(vaddr & 0x1FFFFFFF);
-    else if (vaddr < (u64)0xE0000000)      // KSSEG
+    }
+    else if (vaddr < (u64)0xE0000000) {      // KSSEG
+        printf(" [ WRN ] Unknown Read from KSSEG (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        getchar();
         return 0xFF;
-    else                              // KSEG3
+    }
+    else {                              // KSEG3
+        printf(" [ WRN ] Unknown Read from KSEG3 (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        getchar();
         return 0xFF;
+    }
 }
 
 u16 readu16(u32 vaddr) {
@@ -200,6 +211,9 @@ u8 readPhys(u32 paddr) {
     else {
         // Unknown
     }
+
+    printf(" [ WRN ] Unknown Read from Physical Address 0x%08X. [Press Enter to continue anyway]\n", paddr);
+    getchar();
     return 0xFF;
 }
 
@@ -207,6 +221,7 @@ void writePhys(u32 paddr, u8 val) {
     if (paddr < 0x00400000) {
         // RDRAM - built in
         RDRAM[paddr] = val;
+        return;
     }
     else if (paddr < 0x00800000) {
         // RDRAM - expansion pak
@@ -220,10 +235,12 @@ void writePhys(u32 paddr, u8 val) {
     else if (paddr < 0x04001000) {
         // SP DMEM
         SPDmem[paddr & 0xFFF] = val;
+        return;
     }
     else if (paddr < 0x04002000) {
         // SP IMEM
         SPImem[paddr & 0xFFF] = val;
+        return;
     }
     else if (paddr < 0x04040000) {
         // Unused
@@ -254,6 +271,7 @@ void writePhys(u32 paddr, u8 val) {
         if (paddr > 0x0470001F)
             return;
         RIreg[(paddr >> 2) & 0x1F] = val;
+        return;
     }
     else if (paddr < 0x04900000) {
         // Serial Interface
@@ -288,6 +306,9 @@ void writePhys(u32 paddr, u8 val) {
     else {
         // Unknown
     }
+
+    printf(" [ WRN ] Unknown Write to Physical Address 0x%08X. [Press Enter to continue anyway]\n", paddr);
+    getchar();
 }
 
 void byteswapRom() {

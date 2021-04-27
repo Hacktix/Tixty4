@@ -250,7 +250,6 @@ void instrBLEZL(u32 instr) {
 		pc += 4;
 	printf(" [ INF ] Executing: BLEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
-	getchar();
 }
 
 void instrJR(u32 instr) {
