@@ -255,7 +255,7 @@ void instrBLEZL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
-	branchDecision = ((i32)gpr[s]) <= 0;
+	branchDecision = ((i64)gpr[s]) <= 0;
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
@@ -334,7 +334,7 @@ void instrBGEZL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
-	branchDecision = ((i32)gpr[s]) >= 0;
+	branchDecision = ((i64)gpr[s]) >= 0;
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
