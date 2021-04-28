@@ -46,6 +46,7 @@ int cpuExec() {
 	u32 instr = readu32(pc);
 	u8 opcode = (instr >> 26) & 0x3F;
 	pc += 4;
+	emuLog("\n [ INF ] Read Instruction: 0x%08X\n", instr);
 
 	if (instr != 0) {
 		switch (opcode) {
@@ -70,7 +71,7 @@ int cpuExec() {
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
+				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
 		}
@@ -81,7 +82,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x04: instrMTC0(instr); break;
 			default:
-				printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
+				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
 		}
@@ -108,18 +109,18 @@ int cpuExec() {
 		case 0x2F: instrCACHE(instr); break;
 
 		default:
-			printf("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
+			emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
 			return -1;
 		}
 	}
 	else
-		printf(" [ INF ] Executing: NOP [PC=0x%016llX]\n", pc-4);
+		emuLog(" [ INF ] Executing: NOP [PC=0x%016llX]\n", pc-4);
 
 	if (delayQueue > 0 && --delayQueue == 0) {
 		if (branchDecision) {
 			branchDecision = 0;
 			pc = delaySlot;
-			printf(" [ INF ] Jumping to 0x%016llX (Branch Decision)\n", pc);
+			emuLog(" [ INF ] Jumping to 0x%016llX (Branch Decision)\n", pc);
 		}
 	}
 
@@ -129,16 +130,16 @@ int cpuExec() {
 void instrMTC0(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	printf(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
+	emuLog(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
 	cop0Reg[d] = gpr[t];
 }
 
 void instrLUI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u64 k = s32ext64((instr & 0xFFFF) << 16);
-	printf(" [ INF ] Executing: LUI %02d, %04X [PC=0x%016llX]\n", t, (k >> 16) & 0xFFFF, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to GPR[%d]\n", k, t);
+	emuLog(" [ INF ] Executing: LUI %02d, %04X [PC=0x%016llX]\n", t, (k >> 16) & 0xFFFF, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to GPR[%d]\n", k, t);
 	gpr[t] = k;
 }
 
@@ -147,8 +148,8 @@ void instrADDIU(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i32 k = (i32)s16ext32(instr & 0xFFFF);
 	u64 r = s32ext64((u32)(gpr[s] + k));
-	printf(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
+	emuLog(" [ INF ] Executing: ADDIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%08X+0x%08X) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }
 
@@ -159,8 +160,8 @@ void instrLW(u32 instr) {
 	u32 addr = gpr[b] + f;
 	u32 w = readu32(addr);
 	u64 r = s32ext64(w);
-	printf(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
+	emuLog(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
 	gpr[t] = w;
 }
 
@@ -171,8 +172,8 @@ void instrBNE(u32 instr) {
 	delaySlot = pc + 4*f;
 	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
-	printf(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BNE %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX != 0x%016llX)\n", delaySlot, branchDecision, gpr[s], gpr[t]);
 }
 
 void instrSW(u32 instr) {
@@ -180,8 +181,8 @@ void instrSW(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
-	printf(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
+	emuLog(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
 	writeu32(addr, gpr[t]);
 }
 
@@ -190,8 +191,8 @@ void instrORI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] | (u64)f;
-	printf(" [ INF ] Executing: ORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	emuLog(" [ INF ] Executing: ORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -200,8 +201,8 @@ void instrADDI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i32 k = (i32)s16ext32(instr & 0xFFFF);
 	u64 r = s32ext64((u32)(gpr[s] + k));
-	printf(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
+	emuLog(" [ INF ] Executing: ADDI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }
 
@@ -210,8 +211,8 @@ void instrJAL(u32 instr) {
 	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
 	delayQueue = 2;
 	branchDecision = 1;
-	printf(" [ INF ] Executing: JAL %07X [PC=0x%016llX]\n", target, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[31]\n", delaySlot, pc);
+	emuLog(" [ INF ] Executing: JAL %07X [PC=0x%016llX]\n", target, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[31]\n", delaySlot, pc);
 	gpr[GPR_RA] = pc;
 }
 
@@ -220,8 +221,8 @@ void instrSLTI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	i64 k = s16ext64(instr & 0xFFFF);
 	gpr[t] = ((i64)gpr[s]) < k;
-	printf(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, instr & 0xFFFF, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[t], gpr[s], k, t);
+	emuLog(" [ INF ] Executing: SLTI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, instr & 0xFFFF, pc - 4);
+	emuLog(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[t], gpr[s], k, t);
 }
 
 void instrBEQL(u32 instr) {
@@ -233,8 +234,8 @@ void instrBEQL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrBNEL(u32 instr) {
@@ -246,8 +247,8 @@ void instrBNEL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BNEL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BNEL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrBLEZL(u32 instr) {
@@ -258,8 +259,8 @@ void instrBLEZL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BLEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BLEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrJR(u32 instr) {
@@ -267,8 +268,8 @@ void instrJR(u32 instr) {
 	delaySlot = gpr[s];
 	branchDecision = 1;
 	delayQueue = 2;
-	printf(" [ INF ] Executing: JR %d [PC=0x%016llX]\n", s, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot\n", delaySlot);
+	emuLog(" [ INF ] Executing: JR %d [PC=0x%016llX]\n", s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot\n", delaySlot);
 }
 
 void instrANDI(u32 instr) {
@@ -276,8 +277,8 @@ void instrANDI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] & (u64)f;
-	printf(" [ INF ] Executing: ANDI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	emuLog(" [ INF ] Executing: ANDI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -286,8 +287,8 @@ void instrXORI(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u16 f = instr & 0xFFFF;
 	u64 r = gpr[s] ^ (u64)f;
-	printf(" [ INF ] Executing: XORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
+	emuLog(" [ INF ] Executing: XORI %02d, %02d, 0x%04X [PC=0x%016llX]\n", t, s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%04X) to GPR[%d]\n", r, gpr[s], f, t);
 	gpr[t] = r;
 }
 
@@ -298,13 +299,13 @@ void instrBEQ(u32 instr) {
 	delaySlot = pc + 4 * f;
 	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
-	printf(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 void instrCACHE(u32 instr) {
-	printf(" [ INF ] Executing: CACHE [PC=0x%016llX]\n", pc - 4);
-	printf(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
+	emuLog(" [ INF ] Executing: CACHE [PC=0x%016llX]\n", pc - 4);
+	emuLog(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
 }
 
 void instrSB(u32 instr) {
@@ -313,8 +314,8 @@ void instrSB(u32 instr) {
 	i16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
 	u8 v = (u8)gpr[t];
-	printf(" [ INF ] Executing: SB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%02X from GPR[%d] to 0x%016llX\n", v, t, addr);
+	emuLog(" [ INF ] Executing: SB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%02X from GPR[%d] to 0x%016llX\n", v, t, addr);
 	writeu8(addr, v);
 }
 
@@ -324,8 +325,8 @@ void instrLBU(u32 instr) {
 	i16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
 	u8 v = readu8(addr);
-	printf(" [ INF ] Executing: LBU %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%02X from 0x%016llX to GPR[%d]\n", v, addr, t);
+	emuLog(" [ INF ] Executing: LBU %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%02X from 0x%016llX to GPR[%d]\n", v, addr, t);
 	gpr[t] = v;
 }
 
@@ -337,8 +338,8 @@ void instrBGEZL(u32 instr) {
 	delayQueue = 2;
 	if (!branchDecision)
 		pc += 4;
-	printf(" [ INF ] Executing: BGEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ] Executing: BGEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 
@@ -348,8 +349,8 @@ void instrADDU(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[s] + gpr[t]));
-	printf(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: ADDU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -358,8 +359,8 @@ void instrADD(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[s] + gpr[t]));
-	printf(" [ INF ] Executing: ADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: ADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -368,8 +369,8 @@ void instrSUBU(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[s] - gpr[t]));
-	printf(" [ INF ] Executing: SUBU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX-0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: SUBU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX-0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -378,19 +379,19 @@ void instrSUB(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[s] - gpr[t]));
-	printf(" [ INF ] Executing: SUB %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX-0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: SUB %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX-0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
 void instrMULTU(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	u64 r = (u32)gpr[s] * (u32)gpr[t];
+	u64 r = (gpr[s] & 0xFFFFFFFF) * (gpr[t] & 0xFFFFFFFF);
 	hiReg = s32ext64((r >> 32) & 0xFFFFFFFF);
 	loReg = s32ext64(r & 0xFFFFFFFF);
-	printf(" [ INF ] Executing: MULTU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX*0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
+	emuLog(" [ INF ] Executing: MULTU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX*0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
 }
 
 void instrOR(u32 instr) {
@@ -398,8 +399,8 @@ void instrOR(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] | gpr[t];
-	printf(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: OR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -408,8 +409,8 @@ void instrXOR(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] ^ gpr[t];
-	printf(" [ INF ] Executing: XOR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: XOR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX^0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -418,8 +419,8 @@ void instrAND(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = gpr[s] & gpr[t];
-	printf(" [ INF ] Executing: AND %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: AND %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX&0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
 	gpr[d] = r;
 }
 
@@ -428,8 +429,8 @@ void instrSRL(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[t] >> k));
-	printf(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
+	emuLog(" [ INF ] Executing: SRL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
 
@@ -438,8 +439,8 @@ void instrSRLV(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[t] >> (gpr[d] & 0x1F)));
-	printf(" [ INF ] Executing: SRLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
+	emuLog(" [ INF ] Executing: SRLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
 	gpr[d] = r;
 }
 
@@ -448,8 +449,8 @@ void instrSLL(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[t] << k));
-	printf(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
+	emuLog(" [ INF ] Executing: SLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
 
@@ -458,8 +459,8 @@ void instrSLLV(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	u64 r = s32ext64((u32)(gpr[t] << (gpr[d] & 0x1F)));
-	printf(" [ INF ] Executing: SLLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
+	emuLog(" [ INF ] Executing: SLLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
 	gpr[d] = r;
 }
 
@@ -468,8 +469,8 @@ void instrSLT(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	gpr[d] = ((i64)gpr[s]) < ((i64)gpr[t]);
-	printf(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: SLT %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
 
 void instrSLTU(u32 instr) {
@@ -477,13 +478,13 @@ void instrSLTU(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	gpr[d] = gpr[s] < gpr[t];
-	printf(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
+	emuLog(" [ INF ] Executing: SLTU %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[d], gpr[s], gpr[t], d);
 }
 
 void instrMFLO(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
-	printf(" [ INF ] Executing: MFLO %02d [PC=0x%016llX]\n", d, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from LO to GPR[%d]\n", loReg, d);
+	emuLog(" [ INF ] Executing: MFLO %02d [PC=0x%016llX]\n", d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from LO to GPR[%d]\n", loReg, d);
 	gpr[d] = loReg;
 }
