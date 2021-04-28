@@ -13,6 +13,11 @@ u8* RIreg;
 u8* MIreg;
 u8* RDRAMreg;
 u8* PIreg;
+u8* SPreg;
+u8* SIreg;
+u8* AIreg;
+
+u8* PIFram;
 
 int mmuInit(FILE* romf);
 

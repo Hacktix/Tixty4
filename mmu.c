@@ -69,6 +69,34 @@ int mmuInit(FILE* romf) {
     for (int i = 0; i < 0x10; i++)
         MIreg[i] = 0;
 
+    // Initialize SP Registers
+    SPreg = malloc(0x40007);
+    if (SPreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x40007; i++)
+        SPreg[i] = 0;
+
+    // Initialize SI Registers
+    SIreg = malloc(0x1C);
+    if (SIreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x1C; i++)
+        SIreg[i] = 0;
+
+    // Initialize AI Registers
+    AIreg = malloc(0x18);
+    if (AIreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x18; i++)
+        AIreg[i] = 0;
+
+    // Initialize PIF RAM
+    PIFram = malloc(0x40);
+    if (PIFram == NULL)
+        return -1;
+    for (int i = 0; i < 0x40; i++)
+        PIFram[i] = 0;
+
 	return 0;
 }
 
@@ -183,6 +211,11 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04100000) {
         // SP Registers
+        if (paddr > 0x04080008)
+            return 0xFF;
+        if (paddr > 0x0404001F && paddr < 0x04080000)
+            return 0xFF;
+        return SPreg[paddr & 0x3FFFF];
     }
     else if (paddr < 0x04200000) {
         // DP Command Registers
@@ -202,6 +235,9 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04600000) {
         // Audio Interface
+        if (paddr > 0x04500017)
+            return 0xFF;
+        return AIreg[paddr & 0x1F];
     }
     else if (paddr < 0x04700000) {
         // Peripheral Interface
@@ -218,6 +254,9 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04900000) {
         // Serial Interface
+        if (paddr > 0x0480001B)
+            return 0xFF;
+        return SIreg[paddr & 0x1F];
     }
     else if (paddr < 0x05000000) {
         // Unused
@@ -240,9 +279,10 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x1FC00800) {
         // PIF RAM
+        return PIFram[paddr & 0x3F];
     }
     else if (paddr < 0x1FD00000) {
-        // PIF RAM
+        // Reserved
     }
     else if (paddr < 0x80000000) {
         // Cartridge Domain 1 Address 3
@@ -291,6 +331,12 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04100000) {
         // SP Registers
+        if (paddr > 0x04080008)
+            return;
+        if (paddr > 0x0404001F && paddr < 0x04080000)
+            return;
+        SPreg[paddr & 0x3FFFF] = val;
+        return;
     }
     else if (paddr < 0x04200000) {
         // DP Command Registers
@@ -310,6 +356,10 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04600000) {
         // Audio Interface
+        if (paddr > 0x04500017)
+            return;
+        AIreg[paddr & 0x1F] = val;
+        return;
     }
     else if (paddr < 0x04700000) {
         // Peripheral Interface
@@ -335,6 +385,10 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04900000) {
         // Serial Interface
+        if (paddr > 0x0480001B)
+            return;
+        SIreg[paddr & 0x1F] = val;
+        return;
     }
     else if (paddr < 0x05000000) {
         // Unused
@@ -356,9 +410,11 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x1FC00800) {
         // PIF RAM
+        PIFram[paddr & 0x3F] = val;
+        return;
     }
     else if (paddr < 0x1FD00000) {
-        // PIF RAM
+        // Reserved
     }
     else if (paddr < 0x80000000) {
         // Cartridge Domain 1 Address 3

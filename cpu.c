@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "mmu.h"
 #include "signext.h"
+#include "emu.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -71,6 +72,7 @@ int cpuExec() {
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			default:
+				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
@@ -82,6 +84,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x04: instrMTC0(instr); break;
 			default:
+				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
 				return -1;
 			}
@@ -109,6 +112,7 @@ int cpuExec() {
 		case 0x2F: instrCACHE(instr); break;
 
 		default:
+			hitDbgBrk = 1;
 			emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X) at PC=0x%016llX\n", instr, opcode, pc - 4);
 			return -1;
 		}
@@ -305,7 +309,7 @@ void instrBEQ(u32 instr) {
 
 void instrCACHE(u32 instr) {
 	emuLog(" [ INF ] Executing: CACHE [PC=0x%016llX]\n", pc - 4);
-	emuLog(" [ INF ]   NOTE: This instruction isn't implemented yet.\n");
+	emuLog(" [ INF ]   NOTE: This instruction isn't implemented yet.\n", 0);
 }
 
 void instrSB(u32 instr) {
