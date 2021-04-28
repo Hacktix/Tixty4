@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 
 #define DBG_BRK 0x80000194
 
@@ -12,16 +13,21 @@ void emuStart(FILE* romf) {
     mmuInit(romf);
     cpuInit();
 
+    clock_t time = clock();
+
     while (cpuExec() == 0) {
         // Execute Loop
         if ((pc & 0xFFFFFFFF) == DBG_BRK) {
+            time = clock() - time;
             hitDbgBrk = 1;
-            printf(" [ INF ] Hit Debug Breakpoint at 0x%08X\n", pc);
+            printf(" [ INF ] Hit Debug Breakpoint at 0x%08X after %dms\n", pc, time);
         }
         if (hitDbgBrk) {
             char pressed = getchar();
-            if (pressed == 0x63)
+            if (pressed == 0x63) {
+                time = clock();
                 hitDbgBrk = 0;
+            }
         }
     }
 }

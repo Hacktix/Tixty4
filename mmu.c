@@ -319,7 +319,7 @@ void writePhys(u32 paddr, u8 val) {
             u32 dramAddr = getu32((u32*)(PIreg + PI_DRAM_ADDR_REG));
             u32 cartAddr = getu32((u32*)(PIreg + PI_CART_ADDR_REG));
             u32 readLen = getu32((u32*)(PIreg + PI_WR_LEN_REG)) + 1;
-            printf(" [ INF ] Initiating DMA from 0x%08X to 0x%08X (0x%08X bytes)\n", cartAddr, dramAddr, readLen);
+            emuLog(" [ INF ] Initiating DMA from 0x%08X to 0x%08X (0x%08X bytes)\n", cartAddr, dramAddr, readLen);
             for (u32 i = 0; i < readLen; i++)
                 writePhys(dramAddr + i, readPhys(cartAddr + i));
         }
