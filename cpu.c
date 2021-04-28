@@ -168,7 +168,7 @@ void instrLW(u32 instr) {
 void instrBNE(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4*f;
 	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
@@ -228,7 +228,7 @@ void instrSLTI(u32 instr) {
 void instrBEQL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
 	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
@@ -241,7 +241,7 @@ void instrBEQL(u32 instr) {
 void instrBNEL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
 	branchDecision = (gpr[s] != gpr[t]);
 	delayQueue = 2;
@@ -253,7 +253,7 @@ void instrBNEL(u32 instr) {
 
 void instrBLEZL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
 	branchDecision = ((i32)gpr[s]) <= 0;
 	delayQueue = 2;
@@ -295,7 +295,7 @@ void instrXORI(u32 instr) {
 void instrBEQ(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
 	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
@@ -332,7 +332,7 @@ void instrLBU(u32 instr) {
 
 void instrBGEZL(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
 	delaySlot = pc + 4 * f;
 	branchDecision = ((i32)gpr[s]) >= 0;
 	delayQueue = 2;

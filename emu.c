@@ -10,6 +10,8 @@
 
 void emuStart(FILE* romf) {
     hitDbgBrk = 0;
+    triggerDbgBrk = 0;
+
     mmuInit(romf);
     cpuInit();
 
@@ -17,7 +19,7 @@ void emuStart(FILE* romf) {
 
     while (cpuExec() == 0) {
         // Execute Loop
-        if ((pc & 0xFFFFFFFF) == DBG_BRK) {
+        if ((pc & 0xFFFFFFFF) == DBG_BRK || triggerDbgBrk) {
             time = clock() - time;
             hitDbgBrk = 1;
             printf(" [ INF ] Hit Debug Breakpoint at 0x%08X after %dms\n", pc, time);

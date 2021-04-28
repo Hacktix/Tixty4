@@ -252,7 +252,7 @@ u8 readPhys(u32 paddr) {
     }
 
     printf(" [ WRN ] Unknown Read from Physical Address 0x%08X. Debug mode enabled.\n", paddr);
-    hitDbgBrk = 1;
+    triggerDbgBrk = 1;
     return 0xFF;
 }
 
@@ -368,7 +368,7 @@ void writePhys(u32 paddr, u8 val) {
     }
 
     printf(" [ WRN ] Unknown Write to Physical Address 0x%08X. Debug Mode enabled.\n", paddr);
-    hitDbgBrk = 1;
+    triggerDbgBrk = 1;
 }
 
 void byteswapRom() {
