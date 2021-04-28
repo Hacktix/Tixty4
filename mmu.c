@@ -1,4 +1,5 @@
 #include "mmu.h"
+#include "emu.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -250,8 +251,8 @@ u8 readPhys(u32 paddr) {
         // Unknown
     }
 
-    printf(" [ WRN ] Unknown Read from Physical Address 0x%08X. [Press Enter to continue anyway]\n", paddr);
-    getchar();
+    printf(" [ WRN ] Unknown Read from Physical Address 0x%08X. Debug mode enabled.\n", paddr);
+    hitDbgBrk = 1;
     return 0xFF;
 }
 
@@ -366,8 +367,8 @@ void writePhys(u32 paddr, u8 val) {
         // Unknown
     }
 
-    printf(" [ WRN ] Unknown Write to Physical Address 0x%08X. [Press Enter to continue anyway]\n", paddr);
-    getchar();
+    printf(" [ WRN ] Unknown Write to Physical Address 0x%08X. Debug Mode enabled.\n", paddr);
+    hitDbgBrk = 1;
 }
 
 void byteswapRom() {

@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-#define DBG_BRK 0x80000194
+#define DBG_BRK 0
 
 void emuStart(FILE* romf) {
     hitDbgBrk = 0;
