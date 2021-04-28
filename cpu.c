@@ -92,6 +92,7 @@ int cpuExec() {
 		break;
 
 		case 0x01: instrBGEZL(instr); break;
+		case 0x02: instrJ(instr); break;
 		case 0x03: instrJAL(instr); break;
 		case 0x04: instrBEQ(instr); break;
 		case 0x05: instrBNE(instr); break;
@@ -211,7 +212,7 @@ void instrADDI(u32 instr) {
 }
 
 void instrJAL(u32 instr) {
-	u64 target = ((u64)(instr << 2) & 0xFFFFFFF);
+	u64 target = ((u64)(((u64)instr) << 2) & 0xFFFFFFF);
 	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
 	delayQueue = 2;
 	branchDecision = 1;
@@ -344,6 +345,16 @@ void instrBGEZL(u32 instr) {
 		pc += 4;
 	emuLog(" [ INF ] Executing: BGEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrJ(u32 instr) {
+	hitDbgBrk = 1;
+	u64 target = ((u64)(((u64)instr) << 2) & 0xFFFFFFF);
+	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
+	delayQueue = 2;
+	branchDecision = 1;
+	emuLog(" [ INF ] Executing: J %07X [PC=0x%016llX]\n", target, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot\n", delaySlot, pc);
 }
 
 
