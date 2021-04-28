@@ -438,7 +438,7 @@ void instrSRLV(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	u64 r = s32ext64(((u32)gpr[t]) >> (gpr[d] & 0x1F));
+	u64 r = s32ext64(((u32)gpr[t]) >> (gpr[s] & 0x1F));
 	emuLog(" [ INF ] Executing: SRLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
 	gpr[d] = r;
@@ -458,7 +458,7 @@ void instrSLLV(u32 instr) {
 	char s = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
-	u64 r = s32ext64(((u32)gpr[t]) << (gpr[d] & 0x1F));
+	u64 r = s32ext64(((u32)gpr[t]) << (gpr[s] & 0x1F));
 	emuLog(" [ INF ] Executing: SLLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
 	gpr[d] = r;
