@@ -1,5 +1,6 @@
 #include "mmu.h"
 #include "emu.h"
+#include "cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -437,7 +438,7 @@ void writePhys(u32 paddr, u8 val) {
         // Unknown
     }
 
-    printf(" [ WRN ] Unknown Write to Physical Address 0x%08X. Debug Mode enabled.\n", paddr);
+    printf(" [ WRN ] Unknown Write to Physical Address 0x%08X at 0x%016llX. Debug Mode enabled.\n", paddr, pc);
     triggerDbgBrk = 1;
 }
 

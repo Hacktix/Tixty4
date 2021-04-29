@@ -44,6 +44,7 @@ void cpuInitPIF() {
 
 int cpuExec() {
 
+	gpr[0] = 0;
 	u32 instr = readu32(pc);
 	u8 opcode = (instr >> 26) & 0x3F;
 	pc += 4;
@@ -96,6 +97,7 @@ int cpuExec() {
 		case 0x03: instrJAL(instr); break;
 		case 0x04: instrBEQ(instr); break;
 		case 0x05: instrBNE(instr); break;
+		case 0x07: instrBGTZ(instr); break;
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
 		case 0x0A: instrSLTI(instr); break;
@@ -241,7 +243,7 @@ void instrBEQL(u32 instr) {
 	if (!branchDecision)
 		pc += 4;
 	emuLog(" [ INF ] Executing: BEQL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX == 0x%016llX)\n", delaySlot, branchDecision, gpr[s], gpr[t]);
 }
 
 void instrBNEL(u32 instr) {
@@ -254,7 +256,7 @@ void instrBNEL(u32 instr) {
 	if (!branchDecision)
 		pc += 4;
 	emuLog(" [ INF ] Executing: BNEL %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX != 0x%016llX)\n", delaySlot, branchDecision, gpr[s], gpr[t]);
 }
 
 void instrBLEZL(u32 instr) {
@@ -266,7 +268,7 @@ void instrBLEZL(u32 instr) {
 	if (!branchDecision)
 		pc += 4;
 	emuLog(" [ INF ] Executing: BLEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX <= 0)\n", delaySlot, branchDecision, gpr[s]);
 }
 
 void instrJR(u32 instr) {
@@ -306,7 +308,7 @@ void instrBEQ(u32 instr) {
 	branchDecision = (gpr[s] == gpr[t]);
 	delayQueue = 2;
 	emuLog(" [ INF ] Executing: BEQ %02d, %02d, %d [PC=0x%016llX]\n", s, t, f, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX == 0x%016llX)\n", delaySlot, branchDecision, gpr[s], gpr[t]);
 }
 
 void instrCACHE(u32 instr) {
@@ -345,7 +347,7 @@ void instrBGEZL(u32 instr) {
 	if (!branchDecision)
 		pc += 4;
 	emuLog(" [ INF ] Executing: BGEZL %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX >= 0)\n", delaySlot, branchDecision, gpr[s]);
 }
 
 void instrJ(u32 instr) {
@@ -363,9 +365,19 @@ void instrLB(u32 instr) {
 	i16 f = instr & 0xFFFF;
 	u32 addr = gpr[b] + f;
 	u64 v = s8ext64(readu8(addr));
-	printf(" [ INF ] Executing: LB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from 0x%016llX to GPR[%d]\n", v, addr, t);
+	emuLog(" [ INF ] Executing: LB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from 0x%016llX to GPR[%d]\n", v, addr, t);
 	gpr[t] = v;
+}
+
+void instrBGTZ(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
+	delaySlot = pc + 4 * f;
+	branchDecision = ((i64)gpr[s]) > 0;
+	delayQueue = 2;
+	emuLog(" [ INF ] Executing: BGTZ %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX > 0)\n", delaySlot, branchDecision, gpr[s]);
 }
 
 
