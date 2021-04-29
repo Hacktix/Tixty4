@@ -135,3 +135,6 @@ void instrMFLO(u32 instr);
 void instrJALR(u32 instr);
 void instrDADD(u32 instr);
 void instrDADDU(u32 instr);
+void instrDDIV(u32 instr);
+void instrDDIVU(u32 instr);
+void instrMFHI(u32 instr);
