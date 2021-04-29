@@ -108,6 +108,7 @@ void instrBGEZL(u32 instr);
 void instrJ(u32 instr);
 void instrLB(u32 instr);
 void instrBGTZ(u32 instr);
+void instrLWU(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);

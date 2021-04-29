@@ -111,6 +111,7 @@ int cpuExec() {
 		case 0x20: instrLB(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x24: instrLBU(instr); break;
+		case 0x27: instrLWU(instr); break;
 		case 0x28: instrSB(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
@@ -378,6 +379,18 @@ void instrBGTZ(u32 instr) {
 	delayQueue = 2;
 	emuLog(" [ INF ] Executing: BGTZ %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX > 0)\n", delaySlot, branchDecision, gpr[s]);
+}
+
+void instrLWU(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
+	u32 addr = gpr[b] + f;
+	u32 w = readu32(addr);
+	u64 r = (u64)w;
+	printf(" [ INF ] Executing: LWU %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
+	gpr[t] = r;
 }
 
 
