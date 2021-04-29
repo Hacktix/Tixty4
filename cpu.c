@@ -108,6 +108,7 @@ int cpuExec() {
 		case 0x14: instrBEQL(instr); break;
 		case 0x15: instrBNEL(instr); break;
 		case 0x16: instrBLEZL(instr); break;
+		case 0x18: instrDADDI(instr); break;
 		case 0x20: instrLB(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x24: instrLBU(instr); break;
@@ -388,8 +389,18 @@ void instrLWU(u32 instr) {
 	u32 addr = gpr[b] + f;
 	u32 w = readu32(addr);
 	u64 r = (u64)w;
-	printf(" [ INF ] Executing: LWU %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
+	emuLog(" [ INF ] Executing: LWU %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
+	gpr[t] = r;
+}
+
+void instrDADDI(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i32 k = (i32)s16ext32(instr & 0xFFFF);
+	u64 r = gpr[s] + k;
+	emuLog(" [ INF ] Executing: DADDI %02d, %02d, %04X [PC=0x%016llX]\n", t, s, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], k, t);
 	gpr[t] = r;
 }
 
