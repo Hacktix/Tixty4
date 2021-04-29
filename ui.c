@@ -34,7 +34,12 @@ void drawFramebuffer() {
 
 	if (texture)
 		SDL_DestroyTexture(texture);
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, (getu32(VIreg + 0x8) & 0xFFF), 480);
+
+	u32 width = getu32(VIreg + 0x8) & 0xFFF;
+	u32 y_scale = getu32(VIreg + 0x34);
+	u32 height = ((15 * y_scale) / 64);
+
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	void* origin = RDRAM + (getu32(VIreg + 0x4) & 0x3FFFFF);
 	SDL_UpdateTexture(texture, NULL, origin, (getu32(VIreg + 0x8) & 0xFFF) * 4);
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
