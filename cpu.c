@@ -61,6 +61,7 @@ int cpuExec() {
 			case 0x04: instrSLLV(instr); break;
 			case 0x06: instrSRLV(instr); break;
 			case 0x08: instrJR(instr); break;
+			case 0x09: instrJALR(instr); break;
 			case 0x12: instrMFLO(instr); break;
 			case 0x19: instrMULTU(instr); break;
 			case 0x20: instrADD(instr); break;
@@ -222,8 +223,8 @@ void instrJAL(u32 instr) {
 	delayQueue = 2;
 	branchDecision = 1;
 	emuLog(" [ INF ] Executing: JAL %07X [PC=0x%016llX]\n", target, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[31]\n", delaySlot, pc);
-	gpr[GPR_RA] = pc;
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[31]\n", delaySlot, pc + 4);
+	gpr[GPR_RA] = pc + 4;
 }
 
 void instrSLTI(u32 instr) {
@@ -549,4 +550,15 @@ void instrMFLO(u32 instr) {
 	emuLog(" [ INF ] Executing: MFLO %02d [PC=0x%016llX]\n", d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from LO to GPR[%d]\n", loReg, d);
 	gpr[d] = loReg;
+}
+
+void instrJALR(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	delaySlot = gpr[s];
+	delayQueue = 2;
+	branchDecision = 1;
+	emuLog(" [ INF ] Executing: JALR %d, %d [PC=0x%016llX]\n", d, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[%d]\n", delaySlot, pc + 4, d);
+	gpr[d] = pc + 4;
 }
