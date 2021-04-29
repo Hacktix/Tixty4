@@ -16,6 +16,7 @@ u8* PIreg;
 u8* SPreg;
 u8* SIreg;
 u8* AIreg;
+u8* VIreg;
 
 u8* PIFram;
 

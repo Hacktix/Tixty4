@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "emu.h"
+#include "ui.h"
 
 int main(int argc, char *argv[])
 {
@@ -18,4 +19,5 @@ int main(int argc, char *argv[])
 
     emuStart(romf);
     getchar();
+    closeUI();
 }

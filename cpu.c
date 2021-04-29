@@ -348,7 +348,6 @@ void instrBGEZL(u32 instr) {
 }
 
 void instrJ(u32 instr) {
-	hitDbgBrk = 1;
 	u64 target = ((u64)(((u64)instr) << 2) & 0xFFFFFFF);
 	delaySlot = (pc & 0xFFFFFFFFF0000000) | target;
 	delayQueue = 2;

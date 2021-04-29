@@ -1,6 +1,7 @@
 #include "emu.h"
 #include "mmu.h"
 #include "cpu.h"
+#include "ui.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -12,6 +13,7 @@ void emuStart(FILE* romf) {
     hitDbgBrk = 0;
     triggerDbgBrk = 0;
 
+    initUI();
     mmuInit(romf);
     cpuInit();
 
@@ -31,6 +33,7 @@ void emuStart(FILE* romf) {
                 hitDbgBrk = 0;
             }
         }
+        drawFramebuffer();
     }
 }
 

@@ -97,6 +97,13 @@ int mmuInit(FILE* romf) {
     for (int i = 0; i < 0x40; i++)
         PIFram[i] = 0;
 
+    // Initialize VI Registers
+    VIreg = malloc(0x38);
+    if (VIreg == NULL)
+        return -1;
+    for (int i = 0; i < 0x38; i++)
+        VIreg[i] = 0;
+
 	return 0;
 }
 
@@ -232,6 +239,9 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x04500000) {
         // Video Interface
+        if (paddr > 0x04400037)
+            return 0xFF;
+        return VIreg[paddr & 0x3F];
     }
     else if (paddr < 0x04600000) {
         // Audio Interface
@@ -353,6 +363,10 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x04500000) {
         // Video Interface
+        if (paddr > 0x04400037)
+            return;
+        VIreg[paddr & 0x3F] = val;
+        return;
     }
     else if (paddr < 0x04600000) {
         // Audio Interface
