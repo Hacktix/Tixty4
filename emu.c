@@ -9,6 +9,8 @@
 
 #define DBG_BRK 0
 
+u32 drawCounter = 0;
+
 void emuStart(FILE* romf) {
     hitDbgBrk = 0;
     triggerDbgBrk = 0;
@@ -33,7 +35,11 @@ void emuStart(FILE* romf) {
                 hitDbgBrk = 0;
             }
         }
-        drawFramebuffer();
+        if (++drawCounter == 1000000) {
+            drawFramebuffer();
+            drawCounter = 0;
+            SDL_PollEvent(NULL);
+        }
     }
 }
 
