@@ -73,6 +73,8 @@ int cpuExec() {
 			case 0x26: instrXOR(instr); break;
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
+			case 0x2C: instrDADD(instr); break;
+			case 0x2D: instrDADDU(instr); break;
 			default:
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
@@ -122,6 +124,7 @@ int cpuExec() {
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
 		case 0x37: instrLD(instr); break;
+		case 0x3F: instrSD(instr); break;
 
 		default:
 			hitDbgBrk = 1;
@@ -459,6 +462,16 @@ void instrDMFC0(u32 instr) {
 	gpr[t] = cop0Reg[d];
 }
 
+void instrSD(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	emuLog(" [ INF ] Executing: SD %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
+	writeu64(addr, gpr[t]);
+}
+
 
 
 void instrADDU(u32 instr) {
@@ -615,4 +628,24 @@ void instrJALR(u32 instr) {
 	emuLog(" [ INF ] Executing: JALR %d, %d [PC=0x%016llX]\n", d, s, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot, 0x%016llX to GPR[%d]\n", delaySlot, pc + 4, d);
 	gpr[d] = pc + 4;
+}
+
+void instrDADD(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] + gpr[t];
+	emuLog(" [ INF ] Executing: DADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
+}
+
+void instrDADDU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = gpr[s] + gpr[t];
+	emuLog(" [ INF ] Executing: DADD %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX+0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
 }
