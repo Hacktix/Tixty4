@@ -106,6 +106,7 @@ int cpuExec() {
 		case 0x14: instrBEQL(instr); break;
 		case 0x15: instrBNEL(instr); break;
 		case 0x16: instrBLEZL(instr); break;
+		case 0x20: instrLB(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x24: instrLBU(instr); break;
 		case 0x28: instrSB(instr); break;
@@ -354,6 +355,17 @@ void instrJ(u32 instr) {
 	branchDecision = 1;
 	emuLog(" [ INF ] Executing: J %07X [PC=0x%016llX]\n", target, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot\n", delaySlot, pc);
+}
+
+void instrLB(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u64 v = s8ext64(readu8(addr));
+	printf(" [ INF ] Executing: LB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from 0x%016llX to GPR[%d]\n", v, addr, t);
+	gpr[t] = v;
 }
 
 
