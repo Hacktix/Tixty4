@@ -84,6 +84,7 @@ int cpuExec() {
 		case 0x10: {
 			u8 type = (instr >> 21) & 0x1F;
 			switch (type) {
+			case 0x00: instrDMFC0(instr); break;
 			case 0x04: instrMTC0(instr); break;
 			default:
 				hitDbgBrk = 1;
@@ -448,6 +449,14 @@ void instrSLTIU(u32 instr) {
 	gpr[t] = gpr[s] < k;
 	emuLog(" [ INF ] Executing: SLTIU %02d, %02d, %04X [PC=0x%016llX]\n", t, s, instr & 0xFFFF, pc - 4);
 	emuLog(" [ INF ]   Writing %d (=0x%016llX<0x%016llX) to GPR[%d]\n", gpr[t], gpr[s], k, t);
+}
+
+void instrDMFC0(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	emuLog(" [ INF ] Executing: DMFC00 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from CP0R[%d] to GPRR[%d]\n", cop0Reg[d], t, d);
+	gpr[t] = cop0Reg[d];
 }
 
 
