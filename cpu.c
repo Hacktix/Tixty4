@@ -99,6 +99,17 @@ int cpuExec() {
 		}
 		break;
 
+		case 0x11: {
+			if      ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'0100'0000'0000'0000'0000'0000) instrCFC(instr);
+			else if ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'1100'0000'0000'0000'0000'0000) instrCTC(instr);
+			else {
+				hitDbgBrk = 1;
+				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
+				return -1;
+			}
+		}
+		break;
+
 		case 0x01: instrBGEZL(instr); break;
 		case 0x02: instrJ(instr); break;
 		case 0x03: instrJAL(instr); break;
@@ -692,4 +703,25 @@ void instrMFHI(u32 instr) {
 	emuLog(" [ INF ] Executing: MFHI %02d [PC=0x%016llX]\n", d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from HI to GPR[%d]\n", hiReg, d);
 	gpr[d] = hiReg;
+}
+
+
+
+void instrCFC(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	gpr[t] = d == 0 ? fcr0 : fcr31;
+	printf(" [ INF ] Executing: CFC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from FCR%d to GPR[%d]\n", gpr[t], d, t);
+}
+
+void instrCTC(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	if (d == 0)
+		fcr0 = gpr[t];
+	else
+		fcr31 = gpr[t];
+	printf(" [ INF ] Executing: CTC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
 }

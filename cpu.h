@@ -75,6 +75,9 @@ u64 pc;
 u64 hiReg;
 u64 loReg;
 
+u32 fcr0;
+u32 fcr31;
+
 long long delaySlot;
 int delayQueue;
 int branchDecision;
@@ -138,3 +141,6 @@ void instrDADDU(u32 instr);
 void instrDDIV(u32 instr);
 void instrDDIVU(u32 instr);
 void instrMFHI(u32 instr);
+
+void instrCFC(u32 instr);
+void instrCTC(u32 instr);
