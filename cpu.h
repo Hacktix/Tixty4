@@ -121,6 +121,7 @@ void instrDMFC0(u32 instr);
 void instrSD(u32 instr);
 void instrBLEZ(u32 instr);
 void instrSH(u32 instr);
+void instrLH(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);

@@ -138,6 +138,7 @@ int cpuExec() {
 		case 0x18: instrDADDI(instr); break;
 		case 0x19: instrDADDIU(instr); break;
 		case 0x20: instrLB(instr); break;
+		case 0x21: instrLH(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x24: instrLBU(instr); break;
 		case 0x25: instrLHU(instr); break;
@@ -410,6 +411,17 @@ void instrLB(u32 instr) {
 	u32 addr = gpr[b] + f;
 	u64 v = s8ext64(readu8(addr));
 	emuLog(" [ INF ] Executing: LB %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from 0x%016llX to GPR[%d]\n", v, addr, t);
+	gpr[t] = v;
+}
+
+void instrLH(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u64 v = s16ext64(readu16(addr));
+	emuLog(" [ INF ] Executing: LH %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from 0x%016llX to GPR[%d]\n", v, addr, t);
 	gpr[t] = v;
 }
