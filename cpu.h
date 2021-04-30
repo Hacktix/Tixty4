@@ -169,5 +169,7 @@ void instrDIV_S(u32 instr);
 
 void instrADD_S(u32 instr);
 
+void instrC_LE_S(u32 instr);
+
 void instrTLBWI(u32 instr);
 void instrERET(u32 instr);

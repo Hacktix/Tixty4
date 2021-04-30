@@ -125,6 +125,7 @@ int cpuExec() {
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0010'0000) instrCVT_S_D(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0011) instrDIV_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0000) instrADD_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0000'0000'0000'0000'0011'1110) instrC_LE_S(instr);
 			else {
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
@@ -943,6 +944,22 @@ void instrADD_S(u32 instr) {
 	setFPR(d, *((u32*)&r));
 	printf(" [ INF ] Executing: ADD.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
 	printf(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X+0x%08X)\n", *((u32*)&r), d, vs, vt);
+}
+
+
+
+void instrC_LE_S(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	u32 vs = getFPR(s);
+	u32 vt = getFPR(t);
+	u8 c = (*((float*)&vs)) <= (*((float*)&vt));
+	if (c)
+		fcr31 |= (u32)(1 << 23);
+	else
+		fcr31 &= ~((u32)(1 << 23));
+	printf(" [ INF ] Executing: C.LE.S %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	printf(" [ INF ]   Writing %d to FCR31 C-bit (=0x%08X<=0x%08X)\n", c, vs, vt);
 }
 
 
