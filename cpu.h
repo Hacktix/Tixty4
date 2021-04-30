@@ -120,6 +120,7 @@ void instrSLTIU(u32 instr);
 void instrDMFC0(u32 instr);
 void instrSD(u32 instr);
 void instrBLEZ(u32 instr);
+void instrSH(u32 instr);
 
 void instrADDU(u32 instr);
 void instrADD(u32 instr);
@@ -145,6 +146,7 @@ void instrDDIVU(u32 instr);
 void instrMFHI(u32 instr);
 void instrDIV(u32 instr);
 void instrDIVU(u32 instr);
+void instrSRA(u32 instr);
 
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);

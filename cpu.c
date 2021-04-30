@@ -58,6 +58,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x00: instrSLL(instr); break;
 			case 0x02: instrSRL(instr); break;
+			case 0x03: instrSRA(instr); break;
 			case 0x04: instrSLLV(instr); break;
 			case 0x06: instrSRLV(instr); break;
 			case 0x08: instrJR(instr); break;
@@ -140,6 +141,7 @@ int cpuExec() {
 		case 0x25: instrLHU(instr); break;
 		case 0x27: instrLWU(instr); break;
 		case 0x28: instrSB(instr); break;
+		case 0x29: instrSH(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
 		case 0x37: instrLD(instr); break;
@@ -222,6 +224,16 @@ void instrSW(u32 instr) {
 	emuLog(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
 	writeu32(addr, gpr[t]);
+}
+
+void instrSH(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	emuLog(" [ INF ] Executing: SH %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%04X from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
+	writeu16(addr, gpr[t]);
 }
 
 void instrORI(u32 instr) {
@@ -762,6 +774,16 @@ void instrDIVU(u32 instr) {
 	}
 	emuLog(" [ INF ] Executing: DIVU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX/0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
+}
+
+void instrSRA(u32 instr) {
+	char k = (instr >> 6) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u64 r = s32ext64(((i32)gpr[t]) >> k);
+	emuLog(" [ INF ] Executing: SRA %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
+	gpr[d] = r;
 }
 
 
