@@ -115,6 +115,7 @@ int cpuExec() {
 		case 0x03: instrJAL(instr); break;
 		case 0x04: instrBEQ(instr); break;
 		case 0x05: instrBNE(instr); break;
+		case 0x06: instrBLEZ(instr); break;
 		case 0x07: instrBGTZ(instr); break;
 		case 0x08: instrADDI(instr); break;
 		case 0x09: instrADDIU(instr); break;
@@ -486,6 +487,16 @@ void instrSD(u32 instr) {
 	writeu64(addr, gpr[t]);
 }
 
+void instrBLEZ(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
+	delaySlot = pc + 4 * f;
+	branchDecision = ((i64)gpr[s]) <= 0;
+	delayQueue = 2;
+	emuLog(" [ INF ] Executing: BLEZ %02d, %d [PC=0x%016llX]\n", s, f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d | 0x%016llX <= 0)\n", delaySlot, branchDecision, gpr[s]);
+}
+
 
 
 void instrADDU(u32 instr) {
@@ -711,8 +722,8 @@ void instrCFC(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char d = (instr >> 11) & 0x1F;
 	gpr[t] = d == 0 ? fcr0 : fcr31;
-	printf(" [ INF ] Executing: CFC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from FCR%d to GPR[%d]\n", gpr[t], d, t);
+	emuLog(" [ INF ] Executing: CFC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from FCR%d to GPR[%d]\n", gpr[t], d, t);
 }
 
 void instrCTC(u32 instr) {
@@ -722,6 +733,6 @@ void instrCTC(u32 instr) {
 		fcr0 = gpr[t];
 	else
 		fcr31 = gpr[t];
-	printf(" [ INF ] Executing: CTC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
+	emuLog(" [ INF ] Executing: CTC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
 }
