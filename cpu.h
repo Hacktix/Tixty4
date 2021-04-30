@@ -145,3 +145,5 @@ void instrMFHI(u32 instr);
 
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);
+
+void instrTLBWI(u32 instr);

@@ -91,6 +91,7 @@ int cpuExec() {
 			switch (type) {
 			case 0x00: instrDMFC0(instr); break;
 			case 0x04: instrMTC0(instr); break;
+			case 0x10: instrTLBWI(instr); break;
 			default:
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
@@ -735,4 +736,10 @@ void instrCTC(u32 instr) {
 		fcr31 = gpr[t];
 	emuLog(" [ INF ] Executing: CTC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
+}
+
+
+
+void instrTLBWI(u32 instr) {
+	printf(" [ WRN ] TLBWI Instruction encountered and ignored.\n");
 }
