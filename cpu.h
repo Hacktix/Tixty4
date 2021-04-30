@@ -142,6 +142,8 @@ void instrDADDU(u32 instr);
 void instrDDIV(u32 instr);
 void instrDDIVU(u32 instr);
 void instrMFHI(u32 instr);
+void instrDIV(u32 instr);
+void instrDIVU(u32 instr);
 
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);

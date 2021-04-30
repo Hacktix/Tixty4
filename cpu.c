@@ -65,6 +65,8 @@ int cpuExec() {
 			case 0x10: instrMFHI(instr); break;
 			case 0x12: instrMFLO(instr); break;
 			case 0x19: instrMULTU(instr); break;
+			case 0x1A: instrDIV(instr); break;
+			case 0x1B: instrDIVU(instr); break;
 			case 0x1E: instrDDIV(instr); break;
 			case 0x1F: instrDDIVU(instr); break;
 			case 0x20: instrADD(instr); break;
@@ -715,6 +717,40 @@ void instrMFHI(u32 instr) {
 	emuLog(" [ INF ] Executing: MFHI %02d [PC=0x%016llX]\n", d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from HI to GPR[%d]\n", hiReg, d);
 	gpr[d] = hiReg;
+}
+
+void instrDIV(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	if (gpr[t] == 0) {
+		loReg = ((i64)gpr[s] < 0) ? 1 : ULLONG_MAX;
+		hiReg = gpr[s];
+	}
+	else if (((i64)gpr[s]) == LLONG_MIN && ((i64)gpr[t]) == -1) {
+		loReg = gpr[s];
+		hiReg = 0;
+	}
+	else {
+		loReg = ((i64)gpr[s]) / ((i64)gpr[t]);
+		hiReg = ((i64)gpr[s]) % ((i64)gpr[t]);
+	}
+	emuLog(" [ INF ] Executing: DIV %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX/0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
+}
+
+void instrDIVU(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	if (gpr[t] == 0) {
+		loReg = ULLONG_MAX;
+		hiReg = s32ext64(gpr[s]);
+	}
+	else {
+		loReg = s32ext64(gpr[s] / gpr[t]);
+		hiReg = s32ext64(gpr[s] % gpr[t]);
+	}
+	emuLog(" [ INF ] Executing: DIVU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX/0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
 }
 
 
