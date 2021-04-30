@@ -125,6 +125,7 @@ void instrADDU(u32 instr);
 void instrADD(u32 instr);
 void instrSUBU(u32 instr);
 void instrSUB(u32 instr);
+void instrMULT(u32 instr);
 void instrMULTU(u32 instr);
 void instrOR(u32 instr);
 void instrXOR(u32 instr);
