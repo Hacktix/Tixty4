@@ -147,6 +147,8 @@ void instrMFHI(u32 instr);
 void instrDIV(u32 instr);
 void instrDIVU(u32 instr);
 void instrSRA(u32 instr);
+void instrMTLO(u32 instr);
+void instrMTHI(u32 instr);
 
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);

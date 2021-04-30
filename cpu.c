@@ -64,7 +64,9 @@ int cpuExec() {
 			case 0x08: instrJR(instr); break;
 			case 0x09: instrJALR(instr); break;
 			case 0x10: instrMFHI(instr); break;
+			case 0x11: instrMTHI(instr); break;
 			case 0x12: instrMFLO(instr); break;
+			case 0x13: instrMTLO(instr); break;
 			case 0x18: instrMULT(instr); break;
 			case 0x19: instrMULTU(instr); break;
 			case 0x1A: instrDIV(instr); break;
@@ -784,6 +786,20 @@ void instrSRA(u32 instr) {
 	emuLog(" [ INF ] Executing: SRA %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX>>%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
+}
+
+void instrMTLO(u32 instr) {
+	char d = (instr >> 11) & 0x1F;
+	emuLog(" [ INF ] Executing: MTLO %02d [PC=0x%016llX]\n", d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to LO\n", loReg, d);
+	loReg = gpr[d];
+}
+
+void instrMTHI(u32 instr) {
+	char d = (instr >> 11) & 0x1F;
+	emuLog(" [ INF ] Executing: MTHI %02d [PC=0x%016llX]\n", d, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to HI\n", loReg, d);
+	hiReg = gpr[d];
 }
 
 
