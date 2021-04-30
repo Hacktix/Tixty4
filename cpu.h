@@ -155,3 +155,4 @@ void instrCFC(u32 instr);
 void instrCTC(u32 instr);
 
 void instrTLBWI(u32 instr);
+void instrERET(u32 instr);

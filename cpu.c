@@ -93,6 +93,10 @@ int cpuExec() {
 		break;
 
 		case 0x10: {
+			if (instr == 0x42000018) {
+				instrERET(instr);
+				break;
+			}
 			u8 type = (instr >> 21) & 0x1F;
 			switch (type) {
 			case 0x00: instrDMFC0(instr); break;
@@ -839,4 +843,17 @@ void instrCTC(u32 instr) {
 
 void instrTLBWI(u32 instr) {
 	printf(" [ WRN ] TLBWI Instruction encountered and ignored.\n");
+}
+
+void instrERET(u32 instr) {
+	emuLog(" [ INF ] Executing: ERET [PC=0x%016llX]\n", pc - 4);
+	if (cop0Reg[CP0R_Status] & 0b100) {
+		pc = cop0Reg[CP0R_ErrorEPC];
+		cop0Reg[CP0R_Status] &= (~0b100);
+		emuLog(" [ INF ]   Writing 0x%016llX from CP0R_ErrorEPC to PC\n", pc);
+	} else {
+		pc = cop0Reg[CP0R_EPC];
+		cop0Reg[CP0R_Status] &= (~0b10);
+		emuLog(" [ INF ]   Writing 0x%016llX from CP0R_EPC to PC\n", pc);
+	}
 }

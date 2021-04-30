@@ -10,6 +10,7 @@
 #define DBG_BRK 0
 
 u32 drawCounter = 0;
+const char* gprName[] = { "R0", "AT", "V0", "V1", "A0", "A1", "A2", "A3", "T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "T8", "T9", "K0", "K1", "GP", "SP", "FP", "RA" };
 
 void emuStart(FILE* romf) {
     hitDbgBrk = 0;
@@ -33,6 +34,13 @@ void emuStart(FILE* romf) {
             if (pressed == 0x63) {
                 time = clock();
                 hitDbgBrk = 0;
+            }
+            else {
+                printf("GPR\n");
+                for (u8 i = 0; i < 32; i++)
+                    printf("%s %08X %08X\n", gprName[i], gpr[i] >> 32, gpr[i]);
+                printf("HI %08X %08X\n", hiReg >> 32, hiReg);
+                printf("LO %08X %08X\n", loReg >> 32, loReg);
             }
         }
         if (++drawCounter == 1000000) {
