@@ -110,7 +110,7 @@ int mmuInit(FILE* romf) {
 
 u8 readu8(u32 vaddr) {
     if (vaddr < (u64)0x80000000) {           // KUSEG
-        printf(" [ WRN ] Unknown Read from KUSEG (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        printf(" [ WRN ] Unknown Read from KUSEG (0x%08X) at PC=0x%016llX. [Press Enter to continue anyway]", vaddr, pc-4);
         getchar();
         return 0xFF;
     }
@@ -121,12 +121,12 @@ u8 readu8(u32 vaddr) {
         return readPhys(vaddr & 0x1FFFFFFF);
     }
     else if (vaddr < (u64)0xE0000000) {      // KSSEG
-        printf(" [ WRN ] Unknown Read from KSSEG (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        printf(" [ WRN ] Unknown Read from KSSEG (0x%08X) at PC=0x%016llX. [Press Enter to continue anyway]", vaddr, pc-4);
         getchar();
         return 0xFF;
     }
     else {                              // KSEG3
-        printf(" [ WRN ] Unknown Read from KSEG3 (0x%08X). [Press Enter to continue anyway]\n", vaddr);
+        printf(" [ WRN ] Unknown Read from KSEG3 (0x%08X) at PC=0x%016llX. [Press Enter to continue anyway]", vaddr, pc-4);
         getchar();
         return 0xFF;
     }
