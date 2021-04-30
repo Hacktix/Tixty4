@@ -117,7 +117,7 @@ int cpuExec() {
 		break;
 
 		case 0x11: {
-			if      ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'0100'0000'0000'0000'0000'0000) instrCFC(instr);
+			if ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'0100'0000'0000'0000'0000'0000) instrCFC(instr);
 			else if ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'1100'0000'0000'0000'0000'0000) instrCTC(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0100'1000'0000'0000'0000'0000'0000) instrMTC1(instr);
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'1000'0000'0000'0000'0010'0001) instrCVT_D_W(instr);
@@ -126,6 +126,7 @@ int cpuExec() {
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0011) instrDIV_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0000) instrADD_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0000'0000'0000'0000'0011'1110) instrC_LE_S(instr);
+			else if ((instr & 0xFFFF0000) == 0b0100'0101'0000'0011'0000'0000'0000'0000) instrBC1TL(instr);
 			else {
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
@@ -928,8 +929,8 @@ void instrDIV_S(u32 instr) {
 	u32 vt = getFPR(t);
 	float r = (*((float*)&vs)) / (*((float*)&vt));
 	setFPR(d, *((u32*)&r));
-	printf(" [ INF ] Executing: DIV.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X/0x%08X)\n", *((u32*)&r), d, vs, vt);
+	emuLog(" [ INF ] Executing: DIV.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X/0x%08X)\n", *((u32*)&r), d, vs, vt);
 }
 
 
@@ -942,8 +943,8 @@ void instrADD_S(u32 instr) {
 	u32 vt = getFPR(t);
 	float r = (*((float*)&vs)) + (*((float*)&vt));
 	setFPR(d, *((u32*)&r));
-	printf(" [ INF ] Executing: ADD.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	printf(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X+0x%08X)\n", *((u32*)&r), d, vs, vt);
+	emuLog(" [ INF ] Executing: ADD.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X+0x%08X)\n", *((u32*)&r), d, vs, vt);
 }
 
 
@@ -958,8 +959,21 @@ void instrC_LE_S(u32 instr) {
 		fcr31 |= (u32)(1 << 23);
 	else
 		fcr31 &= ~((u32)(1 << 23));
-	printf(" [ INF ] Executing: C.LE.S %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
-	printf(" [ INF ]   Writing %d to FCR31 C-bit (=0x%08X<=0x%08X)\n", c, vs, vt);
+	emuLog(" [ INF ] Executing: C.LE.S %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
+	emuLog(" [ INF ]   Writing %d to FCR31 C-bit (=0x%08X<=0x%08X)\n", c, vs, vt);
+}
+
+
+
+void instrBC1TL(u32 instr) {
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
+	delaySlot = pc + 4 * f;
+	branchDecision = (fcr31 & (1 << 23));
+	delayQueue = 2;
+	if (!branchDecision)
+		pc += 4;
+	emuLog(" [ INF ] Executing: BC1TL %d [PC=0x%016llX]\n", f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
 
