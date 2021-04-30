@@ -78,6 +78,8 @@ u64 loReg;
 u32 fcr0;
 u32 fcr31;
 
+u64* fgr;
+
 long long delaySlot;
 int delayQueue;
 int branchDecision;
@@ -86,6 +88,9 @@ int cpuInit();
 void cpuInitPIF();
 
 int cpuExec();
+
+u64 getFPR(u8 index);
+void setFPR(u8 index, u64 val);
 
 void instrMTC0(u32 instr);
 void instrLUI(u32 instr);
@@ -153,6 +158,11 @@ void instrMTHI(u32 instr);
 
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);
+void instrMTC1(u32 instr);
+void instrLWC1(u32 instr);
+void instrCVT_D_W(u32 instr);
+void instrCVT_S_W(u32 instr);
+void instrCVT_S_D(u32 instr);
 
 void instrTLBWI(u32 instr);
 void instrERET(u32 instr);

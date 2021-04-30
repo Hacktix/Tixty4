@@ -18,6 +18,12 @@ int cpuInit() {
 	for (int i = 0; i < 31; i++)
 		cop0Reg[i] = 0;
 
+	fgr = malloc(8 * 32);
+	if (fgr == NULL)
+		return -1;
+	for (int i = 0; i < 31; i++)
+		fgr[i] = 0;
+
 	delayQueue = 0;
 	branchDecision = 0;
 
@@ -113,6 +119,10 @@ int cpuExec() {
 		case 0x11: {
 			if      ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'0100'0000'0000'0000'0000'0000) instrCFC(instr);
 			else if ((instr & 0b1111'0011'1110'0000'0000'0111'1111'1111) == 0b0100'0000'1100'0000'0000'0000'0000'0000) instrCTC(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0100'1000'0000'0000'0000'0000'0000) instrMTC1(instr);
+			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'1000'0000'0000'0000'0010'0001) instrCVT_D_W(instr);
+			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'1000'0000'0000'0000'0010'0000) instrCVT_S_W(instr);
+			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0010'0000) instrCVT_S_D(instr);
 			else {
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
@@ -151,6 +161,7 @@ int cpuExec() {
 		case 0x29: instrSH(instr); break;
 		case 0x2B: instrSW(instr); break;
 		case 0x2F: instrCACHE(instr); break;
+		case 0x31: instrLWC1(instr); break;
 		case 0x37: instrLD(instr); break;
 		case 0x3F: instrSD(instr); break;
 
@@ -172,6 +183,22 @@ int cpuExec() {
 	}
 
 	return 0;
+}
+
+u64 getFPR(u8 index) {
+	if ((cop0Reg[CP0R_Status] >> 26) & 1)
+		return fgr[index];
+	else
+		return (fgr[index] & 0xFFFFFFFF) | ((fgr[index + 1] & 0xFFFFFFFF) << 32);
+}
+
+void setFPR(u8 index, u64 val) {
+	if ((cop0Reg[CP0R_Status] >> 26) & 1)
+		fgr[index] = val;
+	else {
+		fgr[index] = (fgr[index] & 0xFFFFFFFF00000000) | (val & 0xFFFFFFFF);
+		fgr[index + 1] = (fgr[index + 1] & 0xFFFFFFFF00000000) | ((val >> 32) & 0xFFFFFFFF);
+	}
 }
 
 void instrMTC0(u32 instr) {
@@ -839,10 +866,59 @@ void instrCTC(u32 instr) {
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
 }
 
+void instrMTC1(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	fgr[s] = (fgr[s] & 0xFFFFFFFF00000000) | (gpr[t] & 0xFFFFFFFF);
+	emuLog(" [ INF ] Executing: MTC1 %02d, %02d [PC=0x%016llX]\n", t, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%08X from GPR[%d] to FGR[%d]\n", gpr[t], t, s);
+}
+
+void instrLWC1(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
+	u32 addr = gpr[b] + f;
+	u32 w = readu32(addr);
+	emuLog(" [ INF ] Executing: LWC1 %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%08X (read from 0x%016llX) to FGR[%d]\n", w, addr, t);
+	fgr[t] = (fgr[t] & 0xFFFFFFFF00000000) | w;
+}
+
+void instrCVT_D_W(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	u64 bv = getFPR(s);
+	double v = (double)bv;
+	setFPR(d, *((u64*)&v));
+	emuLog(" [ INF ] Executing: CVT.D.W %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Double)\n", *((u64*)&v), d, bv);
+}
+
+void instrCVT_S_W(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	u64 bv = getFPR(s);
+	float v = (float)bv;
+	setFPR(d, *((u32*)&v));
+	emuLog(" [ INF ] Executing: CVT.S.W %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", *((u32*)&v), d, bv);
+}
+
+void instrCVT_S_D(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	u64 bv = getFPR(s);
+	float v = (float)*((double*)&bv);
+	setFPR(d, *((u32*)&v));
+	emuLog(" [ INF ] Executing: CVT.S.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", *((u32*)&v), d, bv);
+}
+
 
 
 void instrTLBWI(u32 instr) {
-	printf(" [ WRN ] TLBWI Instruction encountered and ignored.\n");
+	emuLog(" [ WRN ] TLBWI Instruction encountered and ignored. [PC=0x%016llX]\n", pc-4);
 }
 
 void instrERET(u32 instr) {
