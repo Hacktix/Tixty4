@@ -160,9 +160,14 @@ void instrCFC(u32 instr);
 void instrCTC(u32 instr);
 void instrMTC1(u32 instr);
 void instrLWC1(u32 instr);
+
 void instrCVT_D_W(u32 instr);
 void instrCVT_S_W(u32 instr);
 void instrCVT_S_D(u32 instr);
+
+void instrDIV_S(u32 instr);
+
+void instrADD_S(u32 instr);
 
 void instrTLBWI(u32 instr);
 void instrERET(u32 instr);

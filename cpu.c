@@ -123,6 +123,8 @@ int cpuExec() {
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'1000'0000'0000'0000'0010'0001) instrCVT_D_W(instr);
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'1000'0000'0000'0000'0010'0000) instrCVT_S_W(instr);
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0010'0000) instrCVT_S_D(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0011) instrDIV_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0000) instrADD_S(instr);
 			else {
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
@@ -913,6 +915,34 @@ void instrCVT_S_D(u32 instr) {
 	setFPR(d, *((u32*)&v));
 	emuLog(" [ INF ] Executing: CVT.S.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", *((u32*)&v), d, bv);
+}
+
+
+
+void instrDIV_S(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	u32 vs = getFPR(s);
+	u32 vt = getFPR(t);
+	float r = (*((float*)&vs)) / (*((float*)&vt));
+	setFPR(d, *((u32*)&r));
+	printf(" [ INF ] Executing: DIV.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X/0x%08X)\n", *((u32*)&r), d, vs, vt);
+}
+
+
+
+void instrADD_S(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	u32 vs = getFPR(s);
+	u32 vt = getFPR(t);
+	float r = (*((float*)&vs)) + (*((float*)&vt));
+	setFPR(d, *((u32*)&r));
+	printf(" [ INF ] Executing: ADD.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	printf(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X+0x%08X)\n", *((u32*)&r), d, vs, vt);
 }
 
 
