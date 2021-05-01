@@ -162,10 +162,20 @@ void instrCFC(u32 instr);
 void instrCTC(u32 instr);
 void instrMTC1(u32 instr);
 void instrLWC1(u32 instr);
+void instrLDC1(u32 instr);
+void instrSDC1(u32 instr);
+void instrSWC1(u32 instr);
 
+void instrCVT_D_S(u32 instr);
 void instrCVT_D_W(u32 instr);
+void instrCVT_D_L(u32 instr);
 void instrCVT_S_W(u32 instr);
+void instrCVT_S_L(u32 instr);
 void instrCVT_S_D(u32 instr);
+void instrCVT_W_S(u32 instr);
+void instrCVT_W_D(u32 instr);
+void instrCVT_L_S(u32 instr);
+void instrCVT_L_D(u32 instr);
 
 void instrDIV_S(u32 instr);
 
