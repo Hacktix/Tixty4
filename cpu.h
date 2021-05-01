@@ -78,6 +78,8 @@ u64 loReg;
 u32 fcr0;
 u32 fcr31;
 
+void setFCR31(u32 val);
+
 u64* fgr;
 
 long long delaySlot;

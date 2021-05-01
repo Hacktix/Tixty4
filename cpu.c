@@ -4,6 +4,7 @@
 #include "emu.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <fenv.h>
 
 int cpuInit() {
 	gpr = malloc(8 * 32);
@@ -202,6 +203,30 @@ void setFPR(u8 index, u64 val) {
 	else {
 		fgr[index] = (fgr[index] & 0xFFFFFFFF00000000) | (val & 0xFFFFFFFF);
 		fgr[index + 1] = (fgr[index + 1] & 0xFFFFFFFF00000000) | ((val >> 32) & 0xFFFFFFFF);
+	}
+}
+
+void setFCR31(u32 val) {
+	fcr31 = val;
+
+	// Set Rounding Mode
+	switch (val & 0b11) {
+	case 0b00:
+		fesetround(FE_TONEAREST);
+		printf(" [ INF ] Set FPU Rounding Mode to RN (FE_TONEAREST)\n");
+		break;
+	case 0x01:
+		fesetround(FE_TOWARDZERO);
+		printf(" [ INF ] Set FPU Rounding Mode to RZ (FE_TOWARDZERO)\n");
+		break;
+	case 0b10:
+		fesetround(FE_UPWARD);
+		printf(" [ INF ] Set FPU Rounding Mode to RP (FE_UPWARD)\n");
+		break;
+	case 0b11:
+		fesetround(FE_DOWNWARD);
+		printf(" [ INF ] Set FPU Rounding Mode to RM (FE_DOWNWARD)\n");
+		break;
 	}
 }
 
@@ -865,7 +890,7 @@ void instrCTC(u32 instr) {
 	if (d == 0)
 		fcr0 = gpr[t];
 	else
-		fcr31 = gpr[t];
+		setFCR31(gpr[t]);
 	emuLog(" [ INF ] Executing: CTC1 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to FCR%d\n", gpr[t], t, d);
 }
@@ -956,9 +981,9 @@ void instrC_LE_S(u32 instr) {
 	u32 vt = getFPR(t);
 	u8 c = (*((float*)&vs)) <= (*((float*)&vt));
 	if (c)
-		fcr31 |= (u32)(1 << 23);
+		setFCR31(fcr31 | (u32)(1 << 23));
 	else
-		fcr31 &= ~((u32)(1 << 23));
+		setFCR31(fcr31 & ~((u32)(1 << 23)));
 	emuLog(" [ INF ] Executing: C.LE.S %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
 	emuLog(" [ INF ]   Writing %d to FCR31 C-bit (=0x%08X<=0x%08X)\n", c, vs, vt);
 }
