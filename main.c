@@ -17,7 +17,9 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    emuStart(romf);
-    getchar();
+    if (emuStart(romf) < 0) {
+        printf(" [ INF ] Fatal error encountered, emulation stopped. Press any key to exit.");
+        getchar();
+    }
     closeUI();
 }

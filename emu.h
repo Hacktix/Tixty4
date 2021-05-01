@@ -5,5 +5,5 @@
 int hitDbgBrk;
 int triggerDbgBrk;
 
-void emuStart(FILE* romf);
+int emuStart(FILE* romf);
 void emuLog(const char* fmt, va_list argp);

@@ -12,7 +12,7 @@
 u32 drawCounter = 0;
 const char* gprName[] = { "R0", "AT", "V0", "V1", "A0", "A1", "A2", "A3", "T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "T8", "T9", "K0", "K1", "GP", "SP", "FP", "RA" };
 
-void emuStart(FILE* romf) {
+int emuStart(FILE* romf) {
     hitDbgBrk = 0;
     triggerDbgBrk = 0;
 
@@ -21,6 +21,7 @@ void emuStart(FILE* romf) {
     cpuInit();
 
     clock_t time = clock();
+    SDL_Event uiEvent;
 
     while (cpuExec() == 0) {
         // Execute Loop
@@ -44,9 +45,20 @@ void emuStart(FILE* romf) {
             }
         }
         if (++drawCounter == 1000000) {
+            // Render Framebuffer
             drawFramebuffer();
             drawCounter = 0;
-            SDL_PollEvent(NULL);
+
+            // Handle SDL Events
+            SDL_PollEvent(&uiEvent);
+            switch (uiEvent.type) {
+            case SDL_QUIT:
+                return 0;
+            case SDL_KEYDOWN:
+                if (uiEvent.key.keysym.scancode == 41)
+                    hitDbgBrk = 1;
+                break;
+            }
         }
     }
 }
