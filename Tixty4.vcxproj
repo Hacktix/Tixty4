@@ -157,8 +157,15 @@
     <ClInclude Include="emu.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mmu.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="signext.h" />
     <ClInclude Include="ui.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tixty4.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="C:\Users\Boptix\Desktop\Tixty4.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
