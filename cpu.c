@@ -91,6 +91,7 @@ int cpuExec() {
 			case 0x2B: instrSLTU(instr); break;
 			case 0x2C: instrDADD(instr); break;
 			case 0x2D: instrDADDU(instr); break;
+			case 0x38: instrDSLL(instr); break;
 			default:
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
@@ -776,6 +777,16 @@ void instrSLLV(u32 instr) {
 	u64 r = s32ext64(((u32)gpr[t]) << (gpr[s] & 0x1F));
 	emuLog(" [ INF ] Executing: SLLV %02d, %02d, %02d [PC=0x%016llX]\n", d, t, s, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], (gpr[s] & 0x1F), d);
+	gpr[d] = r;
+}
+
+void instrDSLL(u32 instr) {
+	char k = (instr >> 6) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u64 r = gpr[t] << k;
+	emuLog(" [ INF ] Executing: DSLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }
 
