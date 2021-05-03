@@ -135,6 +135,10 @@ int cpuExec() {
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'0011) instrDIV_D(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0000) instrADD_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'0000) instrADD_D(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'1001) instrTRUNC_L_D(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'1001) instrTRUNC_L_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'1101) instrTRUNC_W_D(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'1101) instrTRUNC_W_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0000'0000'0000'0000'0011'1110) instrC_LE_S(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0010'0000'0000'0000'0011'1110) instrC_LE_D(instr);
 			else if ((instr & 0xFFFF0000) == 0b0100'0101'0000'0001'0000'0000'0000'0000) instrBC1T(instr);
@@ -1109,6 +1113,40 @@ void instrADD_D(u32 instr) {
 	double v1 = getFPR_D(s);
 	double v2 = getFPR_D(t);
 	setFPR_D(d, v1 + v2);
+}
+
+
+
+void instrTRUNC_L_D(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double bv = getFPR_D(s);
+	u64 v = (u64)bv;
+	setFPR_L(d, v);
+}
+
+void instrTRUNC_L_S(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	float bv = getFPR_S(s);
+	u64 v = (u64)bv;
+	setFPR_L(d, v);
+}
+
+void instrTRUNC_W_D(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double bv = getFPR_D(s);
+	u32 v = (u32)bv;
+	setFPR_W(d, v);
+}
+
+void instrTRUNC_W_S(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	float bv = getFPR_S(s);
+	u32 v = (u32)bv;
+	setFPR_W(d, v);
 }
 
 

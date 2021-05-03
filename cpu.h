@@ -193,6 +193,11 @@ void instrDIV_D(u32 instr);
 void instrADD_S(u32 instr);
 void instrADD_D(u32 instr);
 
+void instrTRUNC_L_D(u32 instr);
+void instrTRUNC_L_S(u32 instr);
+void instrTRUNC_W_D(u32 instr);
+void instrTRUNC_W_S(u32 instr);
+
 void instrC_LE_S(u32 instr);
 void instrC_LE_D(u32 instr);
 
