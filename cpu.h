@@ -80,7 +80,17 @@ u32 fcr31;
 
 void setFCR31(u32 val);
 
-u64* fgr;
+u32* fgr;
+
+float getFPR_S(u64 index);
+double getFPR_D(u64 index);
+u32 getFPR_W(u64 index);
+u64 getFPR_L(u64 index);
+
+void setFPR_S(u64 index, float value);
+void setFPR_D(u64 index, double value);
+void setFPR_W(u64 index, u32 value);
+void setFPR_L(u64 index, u64 value);
 
 long long delaySlot;
 int delayQueue;
@@ -178,12 +188,17 @@ void instrCVT_L_S(u32 instr);
 void instrCVT_L_D(u32 instr);
 
 void instrDIV_S(u32 instr);
+void instrDIV_D(u32 instr);
 
 void instrADD_S(u32 instr);
+void instrADD_D(u32 instr);
 
 void instrC_LE_S(u32 instr);
+void instrC_LE_D(u32 instr);
 
+void instrBC1T(u32 instr);
 void instrBC1TL(u32 instr);
+void instrBC1F(u32 instr);
 
 void instrTLBWI(u32 instr);
 void instrERET(u32 instr);

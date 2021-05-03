@@ -22,7 +22,7 @@ int cpuInit() {
 	fgr = malloc(8 * 32);
 	if (fgr == NULL)
 		return -1;
-	for (int i = 0; i < 31; i++)
+	for (int i = 0; i < 64; i++)
 		fgr[i] = 0;
 
 	delayQueue = 0;
@@ -132,9 +132,14 @@ int cpuExec() {
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0010'0101) instrCVT_L_S(instr);
 			else if ((instr & 0b1111'1111'1111'1111'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0010'0101) instrCVT_L_D(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0011) instrDIV_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'0011) instrDIV_D(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0000'0000'0000'0000'0000'0000) instrADD_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0000'0011'1111) == 0b0100'0110'0010'0000'0000'0000'0000'0000) instrADD_D(instr);
 			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0000'0000'0000'0000'0011'1110) instrC_LE_S(instr);
+			else if ((instr & 0b1111'1111'1110'0000'0000'0111'1111'1111) == 0b0100'0110'0010'0000'0000'0000'0011'1110) instrC_LE_D(instr);
+			else if ((instr & 0xFFFF0000) == 0b0100'0101'0000'0001'0000'0000'0000'0000) instrBC1T(instr);
 			else if ((instr & 0xFFFF0000) == 0b0100'0101'0000'0011'0000'0000'0000'0000) instrBC1TL(instr);
+			else if ((instr & 0xFFFF0000) == 0b0100'0101'0000'0000'0000'0000'0000'0000) instrBC1F(instr);
 			else {
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX at PC=0x%016llX\n", instr, pc - 4);
@@ -176,7 +181,7 @@ int cpuExec() {
 		case 0x31: instrLWC1(instr); break;
 		case 0x35: instrLDC1(instr); break;
 		case 0x37: instrLD(instr); break;
-		case 0x39: instrSDC1(instr); break;
+		case 0x39: instrSWC1(instr); break;
 		case 0x3D: instrSDC1(instr); break;
 		case 0x3F: instrSD(instr); break;
 
@@ -200,19 +205,59 @@ int cpuExec() {
 	return 0;
 }
 
-u64 getFPR(u8 index) {
-	if ((cop0Reg[CP0R_Status] >> 26) & 1)
-		return fgr[index];
-	else
-		return (fgr[index] & 0xFFFFFFFF) | ((fgr[index + 1] & 0xFFFFFFFF) << 32);
+float getFPR_S(u64 index) {
+	u32 v = getFPR_W(index);
+	return *((float*)&v);
 }
 
-void setFPR(u8 index, u64 val) {
+double getFPR_D(u64 index) {
+	u64 v = getFPR_L(index);
+	return *((double*)&v);
+}
+
+u32 getFPR_W(u64 index) {
 	if ((cop0Reg[CP0R_Status] >> 26) & 1)
-		fgr[index] = val;
+		return fgr[2 * index];
+	else
+		return fgr[4 * index];
+}
+
+u64 getFPR_L(u64 index) {
+	if ((cop0Reg[CP0R_Status] >> 26) & 1)
+		return *((u64*)(fgr + 2 * index));
+	else
+		return fgr[4 * index] | (((u64)fgr[4 * index + 2]) << 32);
+}
+
+void setFPR_S(u64 index, float value) {
+	u32 fval = *((u32*)&value);
+	setFPR_W(index, fval);
+}
+
+void setFPR_D(u64 index, double value) {
+	u64 dval = *((u64*)&value);
+	setFPR_L(index, dval);
+}
+
+void setFPR_W(u64 index, u32 value) {
+	if ((cop0Reg[CP0R_Status] >> 26) & 1) {
+		fgr[2 * index] = value;
+		fgr[2 * index + 1] = 0;
+	}
 	else {
-		fgr[index] = (fgr[index] & 0xFFFFFFFF00000000) | (val & 0xFFFFFFFF);
-		fgr[index + 1] = (fgr[index + 1] & 0xFFFFFFFF00000000) | ((val >> 32) & 0xFFFFFFFF);
+		fgr[4 * index] = value;
+		fgr[4 * index + 2] = 0;
+	}
+}
+
+void setFPR_L(u64 index, u64 value) {
+	if ((cop0Reg[CP0R_Status] >> 26) & 1) {
+		u64* vptr = fgr + 2 * index;
+		*vptr = value;
+	}
+	else {
+		fgr[4 * index] = (u32)value;
+		fgr[4 * index + 2] = (u32)(value >> 32);
 	}
 }
 
@@ -908,9 +953,8 @@ void instrCTC(u32 instr) {
 void instrMTC1(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char s = (instr >> 11) & 0x1F;
-	fgr[s] = (fgr[s] & 0xFFFFFFFF00000000) | (gpr[t] & 0xFFFFFFFF);
-	emuLog(" [ INF ] Executing: MTC1 %02d, %02d [PC=0x%016llX]\n", t, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%08X from GPR[%d] to FGR[%d]\n", gpr[t], t, s);
+	u32 v = (u32)gpr[t];
+	setFPR_W(s, v);
 }
 
 void instrLWC1(u32 instr) {
@@ -919,9 +963,7 @@ void instrLWC1(u32 instr) {
 	i32 f = (i32)s16ext32(instr & 0xFFFF);
 	u32 addr = gpr[b] + f;
 	u32 w = readu32(addr);
-	emuLog(" [ INF ] Executing: LWC1 %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%08X (read from 0x%016llX) to FGR[%d]\n", w, addr, t);
-	fgr[t] = (fgr[t] & 0xFFFFFFFF00000000) | w;
+	setFPR_W(t, w);
 }
 
 void instrLDC1(u32 instr) {
@@ -930,139 +972,103 @@ void instrLDC1(u32 instr) {
 	i32 f = (i32)s16ext32(instr & 0xFFFF);
 	u32 addr = gpr[b] + f;
 	u64 w = readu64(addr);
-	emuLog(" [ INF ] Executing: LDC1 %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX (read from 0x%016llX) to FGR[%d]\n", w, addr, t);
-	setFPR(t, w);
+	setFPR_L(t, w);
 }
 
 void instrSDC1(u32 instr) {
 	char b = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
 	u32 addr = gpr[b] + f;
-	u64 v = getFPR(t);
-	emuLog(" [ INF ] Executing: SDC1 %02d, 0x%04X(%d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX from FPR[%d] to 0x%016llX\n", v, t, addr);
-	writeu64(addr, v);
+	writeu64(addr, getFPR_L(t));
 }
 
 void instrSWC1(u32 instr) {
 	char b = (instr >> 21) & 0x1F;
 	char t = (instr >> 16) & 0x1F;
-	i16 f = instr & 0xFFFF;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
 	u32 addr = gpr[b] + f;
-	u32 v = getFPR(t);
-	emuLog(" [ INF ] Executing: SWC1 %02d, 0x%04X(%d) [PC=0x%016llX]\n", t, f, b, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%8X from FPR[%d] to 0x%016llX\n", v, t, addr);
-	writeu32(addr, v);
-}
-
-void instrCVT_D_S(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s) & 0xFFFFFFFF;
-	double v = (double)(*((float*)&bv));
-	setFPR(d, *((u64*)&v));
-	emuLog(" [ INF ] Executing: CVT.D.S %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Double)\n", *((u64*)&v), d, bv);
-}
-
-void instrCVT_D_W(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	i32 bv = getFPR(s);
-	double v = (double)bv;
-	setFPR(d, *((u64*)&v));
-	emuLog(" [ INF ] Executing: CVT.D.W %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Double)\n", *((u64*)&v), d, bv);
+	writeu32(addr, getFPR_W(t));
 }
 
 void instrCVT_D_L(u32 instr) {
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	i64 bv = getFPR(s);
+	i64 bv = getFPR_L(s);
 	double v = (double)bv;
-	setFPR(d, *((u64*)&v));
-	emuLog(" [ INF ] Executing: CVT.D.L %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Double)\n", *((u64*)&v), d, bv);
+	setFPR_D(d, v);
 }
 
-void instrCVT_S_W(u32 instr) {
+void instrCVT_D_S(u32 instr) {
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	i32 bv = getFPR(s);
-	float fv = (float)bv;
-	u64 v = (u64)(*((u32*)&fv)) << 32;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.S.W %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", *((u32*)&v), d, bv);
+	float bv = getFPR_S(s);
+	double v = (double)bv;
+	setFPR_D(d, v);
 }
 
-void instrCVT_S_L(u32 instr) {
+void instrCVT_D_W(u32 instr) {
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	i64 bv = getFPR(s);
-	float fv = (float)bv;
-	u64 v = (u64)(*((u32*)&fv)) << 32;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.S.L %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", v, d, bv);
-}
-
-void instrCVT_S_D(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s);
-	double dv = *((double*)&bv);
-	float fv = (float)dv;
-	u64 v = (*((u64*)&fv)) << 32;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.S.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Single)\n", v, d, bv);
-}
-
-void instrCVT_W_S(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s);
-	float fv = *((float*)&bv);
-	u64 v = (u64)fv << 32;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.L.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Word)\n", v, d, bv);
-}
-
-void instrCVT_W_D(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s);
-	double dv = *((double*)&bv);
-	u64 v = (u64)dv << 32;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.L.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Word)\n", v, d, bv);
-}
-
-void instrCVT_L_S(u32 instr) {
-	char s = (instr >> 11) & 0x1F;
-	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s);
-	float sv = *((float*)&bv);
-	u64 v = (i64)sv;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.L.S %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Long)\n", v, d, bv);
+	i32 bv = getFPR_W(s);
+	double v = (double)bv;
+	setFPR_D(d, v);
 }
 
 void instrCVT_L_D(u32 instr) {
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	u64 bv = getFPR(s);
-	double db = *((double*)&bv);
-	u64 v = (i64)db;
-	setFPR(d, v);
-	emuLog(" [ INF ] Executing: CVT.L.D %02d, %02d [PC=0x%016llX]\n", d, s, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%016llX to Long)\n", v, d, bv);
+	double bv = getFPR_D(s);
+	u64 v = (u64)bv;
+	setFPR_L(d, v);
+}
+
+void instrCVT_L_S(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	float bv = getFPR_S(s);
+	u64 v = (u64)bv;
+	setFPR_L(d, v);
+}
+
+void instrCVT_S_D(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double bv = getFPR_D(s);
+	float v = (float)bv;
+	setFPR_S(d, v);
+}
+
+void instrCVT_S_L(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	i64 bv = getFPR_L(s);
+	float v = (float)bv;
+	setFPR_S(d, v);
+}
+
+void instrCVT_S_W(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	i32 bv = getFPR_W(s);
+	float v = (float)bv;
+	setFPR_S(d, v);
+}
+
+void instrCVT_W_D(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double bv = getFPR_D(s);
+	u32 v = (u32)bv;
+	setFPR_W(d, v);
+}
+
+void instrCVT_W_S(u32 instr) {
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	float bv = getFPR_S(s);
+	u32 v = (u32)bv;
+	setFPR_W(d, v);
 }
 
 
@@ -1071,12 +1077,18 @@ void instrDIV_S(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	u32 vs = getFPR(s);
-	u32 vt = getFPR(t);
-	float r = (*((float*)&vs)) / (*((float*)&vt));
-	setFPR(d, *((u32*)&r));
-	emuLog(" [ INF ] Executing: DIV.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X/0x%08X)\n", *((u32*)&r), d, vs, vt);
+	float v1 = getFPR_S(s);
+	float v2 = getFPR_S(t);
+	setFPR_S(d, v1 / v2);
+}
+
+void instrDIV_D(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double v1 = getFPR_D(s);
+	double v2 = getFPR_D(t);
+	setFPR_D(d, v1 / v2);
 }
 
 
@@ -1085,12 +1097,18 @@ void instrADD_S(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char s = (instr >> 11) & 0x1F;
 	char d = (instr >> 6) & 0x1F;
-	u32 vs = getFPR(s);
-	u32 vt = getFPR(t);
-	float r = (*((float*)&vs)) + (*((float*)&vt));
-	setFPR(d, *((u32*)&r));
-	emuLog(" [ INF ] Executing: ADD.S %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
-	emuLog(" [ INF ]   Writing 0x%016llX to FGR[%d] (=0x%08X+0x%08X)\n", *((u32*)&r), d, vs, vt);
+	float v1 = getFPR_S(s);
+	float v2 = getFPR_S(t);
+	setFPR_S(d, v1 + v2);
+}
+
+void instrADD_D(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	char d = (instr >> 6) & 0x1F;
+	double v1 = getFPR_D(s);
+	double v2 = getFPR_D(t);
+	setFPR_D(d, v1 + v2);
 }
 
 
@@ -1098,18 +1116,35 @@ void instrADD_S(u32 instr) {
 void instrC_LE_S(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	char s = (instr >> 11) & 0x1F;
-	u32 vs = getFPR(s);
-	u32 vt = getFPR(t);
-	u8 c = (*((float*)&vs)) <= (*((float*)&vt));
-	if (c)
+	float v1 = getFPR_S(s);
+	float v2 = getFPR_S(t);
+	if (v1 <= v2)
 		setFCR31(fcr31 | (u32)(1 << 23));
 	else
 		setFCR31(fcr31 & ~((u32)(1 << 23)));
-	emuLog(" [ INF ] Executing: C.LE.S %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
-	emuLog(" [ INF ]   Writing %d to FCR31 C-bit (=0x%08X<=0x%08X)\n", c, vs, vt);
+}
+
+void instrC_LE_D(u32 instr) {
+	char t = (instr >> 16) & 0x1F;
+	char s = (instr >> 11) & 0x1F;
+	double v1 = getFPR_D(s);
+	double v2 = getFPR_D(t);
+	if (v1 <= v2)
+		setFCR31(fcr31 | (u32)(1 << 23));
+	else
+		setFCR31(fcr31 & ~((u32)(1 << 23)));
 }
 
 
+
+void instrBC1T(u32 instr) {
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
+	delaySlot = pc + 4 * f;
+	branchDecision = (fcr31 & (1 << 23));
+	delayQueue = 2;
+	emuLog(" [ INF ] Executing: BC1T %d [PC=0x%016llX]\n", f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
 
 void instrBC1TL(u32 instr) {
 	i64 f = (i64)s16ext64(instr & 0xFFFF);
@@ -1119,6 +1154,15 @@ void instrBC1TL(u32 instr) {
 	if (!branchDecision)
 		pc += 4;
 	emuLog(" [ INF ] Executing: BC1TL %d [PC=0x%016llX]\n", f, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
+}
+
+void instrBC1F(u32 instr) {
+	i64 f = (i64)s16ext64(instr & 0xFFFF);
+	delaySlot = pc + 4 * f;
+	branchDecision = (fcr31 & (1 << 23)) == 0;
+	delayQueue = 2;
+	emuLog(" [ INF ] Executing: BC1T %d [PC=0x%016llX]\n", f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to Delay Slot (Condition: %d)\n", delaySlot, branchDecision);
 }
 
