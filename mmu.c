@@ -28,7 +28,7 @@ int mmuInit(FILE* romf) {
 	printf(" [ INF ] Loaded ROM (%d bytes)\n\n", rom_size);
 
     // Initialize RDRAM
-    RDRAM = malloc(0x400000);
+    RDRAM = malloc(0x800000);
     if (RDRAM == NULL)
         return -1;
 
@@ -195,6 +195,7 @@ u8 readPhys(u32 paddr) {
     }
     else if (paddr < 0x00800000) {
         // RDRAM - expansion pak
+        return RDRAM[paddr];
     }
     else if (paddr < 0x03F00000) {
         // Unused
@@ -315,6 +316,8 @@ void writePhys(u32 paddr, u8 val) {
     }
     else if (paddr < 0x00800000) {
         // RDRAM - expansion pak
+        RDRAM[paddr] = val;
+        return;
     }
     else if (paddr < 0x03F00000) {
         // Unused
