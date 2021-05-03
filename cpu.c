@@ -92,6 +92,7 @@ int cpuExec() {
 			case 0x2C: instrDADD(instr); break;
 			case 0x2D: instrDADDU(instr); break;
 			case 0x38: instrDSLL(instr); break;
+			case 0x3C: instrDSLL32(instr); break;
 			default:
 				hitDbgBrk = 1;
 				emuLog("\n [ ERR ] Unimplemented Instruction 0x%016llX (Opcode %02X, Type %02X) at PC=0x%016llX\n", instr, opcode, type, pc - 4);
@@ -786,6 +787,16 @@ void instrDSLL(u32 instr) {
 	char t = (instr >> 16) & 0x1F;
 	u64 r = gpr[t] << k;
 	emuLog(" [ INF ] Executing: DSLL %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
+	gpr[d] = r;
+}
+
+void instrDSLL32(u32 instr) {
+	char k = 32 + ((instr >> 6) & 0x1F);
+	char d = (instr >> 11) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	u64 r = gpr[t] << k;
+	emuLog(" [ INF ] Executing: DSLL32 %02d, %02d, %02d [PC=0x%016llX]\n", d, t, k, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX<<%d) to GPR[%d]\n", r, gpr[t], k, d);
 	gpr[d] = r;
 }

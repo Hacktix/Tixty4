@@ -154,6 +154,7 @@ void instrSRLV(u32 instr);
 void instrSLL(u32 instr);
 void instrSLLV(u32 instr);
 void instrDSLL(u32 instr);
+void instrDSLL32(u32 instr);
 void instrSLT(u32 instr);
 void instrSLTU(u32 instr);
 void instrMFLO(u32 instr);
