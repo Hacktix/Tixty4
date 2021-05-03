@@ -383,6 +383,10 @@ void writePhys(u32 paddr, u8 val) {
         // Peripheral Interface
         if (paddr > 0x04600034)
             return;
+
+        if (paddr >= 0x04600010 && paddr < 0x04600014)
+            return;
+
         PIreg[paddr & 0x3F] = val;
         if (paddr == PI_BASE_REG + PI_WR_LEN_REG + 3) {
             u32 dramAddr = getu32((u32*)(PIreg + PI_DRAM_ADDR_REG));

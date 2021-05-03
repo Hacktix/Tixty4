@@ -87,6 +87,7 @@ int cpuExec() {
 			case 0x24: instrAND(instr); break;
 			case 0x25: instrOR(instr); break;
 			case 0x26: instrXOR(instr); break;
+			case 0x27: instrNOR(instr); break;
 			case 0x2A: instrSLT(instr); break;
 			case 0x2B: instrSLTU(instr); break;
 			case 0x2C: instrDADD(instr); break;
@@ -709,6 +710,16 @@ void instrMULTU(u32 instr) {
 	loReg = s32ext64(r & 0xFFFFFFFF);
 	emuLog(" [ INF ] Executing: MULTU %02d, %02d [PC=0x%016llX]\n", s, t, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX to HI, 0x%016llX to LO (=0x%016llX*0x%016llX)\n", hiReg, loReg, gpr[s], gpr[t]);
+}
+
+void instrNOR(u32 instr) {
+	char s = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	char d = (instr >> 11) & 0x1F;
+	u64 r = (~gpr[s]) & (~gpr[t]);
+	emuLog(" [ INF ] Executing: NOR %02d, %02d, %02d [PC=0x%016llX]\n", d, s, t, pc - 4);
+	emuLog(" [ INF ]   Writing 0x%016llX (=0x%016llX|0x%016llX) to GPR[%d]\n", r, gpr[s], gpr[t], d);
+	gpr[d] = r;
 }
 
 void instrOR(u32 instr) {
