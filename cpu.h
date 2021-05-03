@@ -171,6 +171,7 @@ void instrMTHI(u32 instr);
 void instrCFC(u32 instr);
 void instrCTC(u32 instr);
 void instrMTC1(u32 instr);
+void instrMFC1(u32 instr);
 void instrLWC1(u32 instr);
 void instrLDC1(u32 instr);
 void instrSDC1(u32 instr);
