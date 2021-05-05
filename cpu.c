@@ -196,7 +196,9 @@ int cpuExec() {
 		case 0x27: instrLWU(instr); break;
 		case 0x28: instrSB(instr); break;
 		case 0x29: instrSH(instr); break;
+		case 0x2A: instrSWL(instr); break;
 		case 0x2B: instrSW(instr); break;
+		case 0x2E: instrSWR(instr); break;
 		case 0x2F: instrCACHE(instr); break;
 		case 0x31: instrLWC1(instr); break;
 		case 0x35: instrLDC1(instr); break;
@@ -421,6 +423,30 @@ void instrSW(u32 instr) {
 	emuLog(" [ INF ] Executing: SW %02d, 0x%04X [PC=0x%016llX]\n", t, f, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to 0x%016llX\n", gpr[t], t, addr);
 	writeu32(addr, gpr[t]);
+}
+
+void instrSWL(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u8 shift = 8 * (addr & 3);
+	u32 mask = 0xFFFFFFFF >> shift;
+	u32 dat = readu32(addr & ~3);
+	u32 sval = (dat & ~mask) | ((u32)gpr[t] >> shift);
+	writeu32(addr & ~3, sval);
+}
+
+void instrSWR(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i16 f = instr & 0xFFFF;
+	u32 addr = gpr[b] + f;
+	u8 shift = 8 * ((addr ^ 3) & 3);
+	u32 mask = 0xFFFFFFFF << shift;
+	u32 dat = readu32(addr & ~3);
+	u32 sval = (dat & ~mask) | ((u32)gpr[t] << shift);
+	writeu32(addr & ~3, sval);
 }
 
 void instrSH(u32 instr) {

@@ -113,6 +113,8 @@ void instrLWL(u32 instr);
 void instrLWR(u32 instr);
 void instrBNE(u32 instr);
 void instrSW(u32 instr);
+void instrSWL(u32 instr);
+void instrSWR(u32 instr);
 void instrORI(u32 instr);
 void instrADDI(u32 instr);
 void instrJAL(u32 instr);
