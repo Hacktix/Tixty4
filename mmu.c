@@ -14,6 +14,9 @@
 #define PI_RD_LEN_REG    0x8
 #define PI_WR_LEN_REG    0xC
 
+u8 mi_intr_mask = 0;
+u8 mi_intr_reg = 0;
+
 int mmuInit(FILE* romf) {
 	// Get File Size
 	fseek(romf, 0L, SEEK_END);
@@ -236,8 +239,24 @@ u8 readPhys(u32 paddr) {
         // MIPS Interface
         if (paddr > 0x0430000F)
             return 0xFF;
-        else
-            return MIreg[paddr & 0xF];
+
+        switch (paddr) {
+        case 0x04300008:
+        case 0x04300009:
+        case 0x0430000A:
+            return 0;
+        case 0x0430000B:
+            return mi_intr_reg;
+
+        case 0x0430000C:
+        case 0x0430000D:
+        case 0x0430000E:
+            return 0;
+        case 0x0430000F:
+            return mi_intr_mask;
+        }
+
+        return MIreg[paddr & 0xF];
     }
     else if (paddr < 0x04500000) {
         // Video Interface
@@ -362,6 +381,37 @@ void writePhys(u32 paddr, u8 val) {
         // MIPS Interface
         if (paddr > 0x0430000F)
             return;
+
+        switch (paddr) {
+        case 0x04300008:
+        case 0x04300009:
+        case 0x0430000A:
+        case 0x0430000B:
+            return;
+
+        case 0x0430000C:
+        case 0x0430000D:
+            return;
+        case 0x0430000E:
+            if (val & 1) mi_intr_reg &= ~((u64)1 << 4);
+            if (val & 2) mi_intr_reg |= ((u64)1 << 4);
+            if (val & 4) mi_intr_reg &= ~((u64)1 << 5);
+            if (val & 8) mi_intr_reg |= ((u64)1 << 5);
+            checkInterrupts();
+            return;
+        case 0x0430000F:
+            if (val & 1) mi_intr_reg &= ~((u64)1 << 0);
+            if (val & 2) mi_intr_reg |= ((u64)1 << 0);
+            if (val & 4) mi_intr_reg &= ~((u64)1 << 1);
+            if (val & 8) mi_intr_reg |= ((u64)1 << 1);
+            if (val & 16) mi_intr_reg &= ~((u64)1 << 2);
+            if (val & 32) mi_intr_reg |= ((u64)1 << 2);
+            if (val & 64) mi_intr_reg &= ~((u64)1 << 3);
+            if (val & 128) mi_intr_reg |= ((u64)1 << 3);
+            checkInterrupts();
+            return;
+        }
+
         MIreg[paddr & 0xF] = val;
         return;
     }

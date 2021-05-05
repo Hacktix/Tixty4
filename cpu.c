@@ -49,7 +49,17 @@ void cpuInitPIF() {
 	pc = 0xA4000040;
 }
 
+int timer = 0;
 int cpuExec() {
+
+	// Handle Timer Interrupts
+	if (++timer) {
+		timer = 0;
+		if (++cop0Reg[CP0R_Count] == cop0Reg[CP0R_Compare]) {
+			cop0Reg[CP0R_Cause] |= (1 << 15);
+		}
+	}
+	checkInterrupts();
 
 	gpr[0] = 0;
 	u32 instr = readu32(pc);
@@ -213,6 +223,41 @@ int cpuExec() {
 	return 0;
 }
 
+void checkInterrupts() {
+	if (mi_intr_reg & mi_intr_mask)
+		cop0Reg[CP0R_Cause] |= (1 << 10);
+
+	if ((((cop0Reg[CP0R_Cause] >> 8) & 0xFF) & ((cop0Reg[CP0R_Status] >> 8) & 0xFF)) && ((cop0Reg[CP0R_Status] & 7) == 1)) {
+		if (delayQueue > 0)
+			cop0Reg[CP0R_Cause] |= ((u32)1 << 31);
+		else
+			cop0Reg[CP0R_Cause] &= ~((u32)1 << 31);
+
+		if ((cop0Reg[CP0R_Status] & 0b10) == 0) {
+			cop0Reg[CP0R_EPC] = delayQueue > 0 ? pc - 4 : pc;
+			cop0Reg[CP0R_Status] |= 0b10;
+		}
+
+		cop0Reg[CP0R_Cause] &= ~(0b1111100);
+
+		if (cop0Reg[CP0R_Status] & ((u32)1 << 22))
+			pc = 0xBFC00380;
+		else
+			pc = 0x80000180;
+		branchDecision = 0;
+	}
+}
+
+void setRegCP0(u64 index, u64 value) {
+	cop0Reg[index] = value;
+
+	switch (index) {
+	case CP0R_Compare:
+		cop0Reg[CP0R_Cause] &= ~(1 << 15);
+		break;
+	}
+}
+
 float getFPR_S(u64 index) {
 	u32 v = getFPR_W(index);
 	return *((float*)&v);
@@ -298,7 +343,7 @@ void instrMTC0(u32 instr) {
 	char d = (instr >> 11) & 0x1F;
 	emuLog(" [ INF ] Executing: MTC0 %02d, %02d [PC=0x%016llX]\n", t, d, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX from GPR[%d] to CP0R[%d]\n", gpr[t], t, d);
-	cop0Reg[d] = gpr[t];
+	setRegCP0(d, gpr[t]);
 }
 
 void instrLUI(u32 instr) {

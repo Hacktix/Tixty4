@@ -20,6 +20,9 @@ u8* VIreg;
 
 u8* PIFram;
 
+u8 mi_intr_mask;
+u8 mi_intr_reg;
+
 int mmuInit(FILE* romf);
 
 u8 readu8(u64 vaddr);

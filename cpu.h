@@ -100,6 +100,7 @@ int cpuInit();
 void cpuInitPIF();
 
 int cpuExec();
+void checkInterrupts();
 
 u64 getFPR(u8 index);
 void setFPR(u8 index, u64 val);
