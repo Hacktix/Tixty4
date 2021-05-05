@@ -109,6 +109,8 @@ void instrMTC0(u32 instr);
 void instrLUI(u32 instr);
 void instrADDIU(u32 instr);
 void instrLW(u32 instr);
+void instrLWL(u32 instr);
+void instrLWR(u32 instr);
 void instrBNE(u32 instr);
 void instrSW(u32 instr);
 void instrORI(u32 instr);

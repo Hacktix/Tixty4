@@ -188,9 +188,11 @@ int cpuExec() {
 		case 0x19: instrDADDIU(instr); break;
 		case 0x20: instrLB(instr); break;
 		case 0x21: instrLH(instr); break;
+		case 0x22: instrLWL(instr); break;
 		case 0x23: instrLW(instr); break;
 		case 0x24: instrLBU(instr); break;
 		case 0x25: instrLHU(instr); break;
+		case 0x26: instrLWR(instr); break;
 		case 0x27: instrLWU(instr); break;
 		case 0x28: instrSB(instr); break;
 		case 0x29: instrSH(instr); break;
@@ -374,6 +376,30 @@ void instrLW(u32 instr) {
 	emuLog(" [ INF ] Executing: LW %02d, %04X(%02d) [PC=0x%016llX]\n", t, f, b, pc - 4);
 	emuLog(" [ INF ]   Writing 0x%016llX (0x%08X read from 0x%016llX) to GPR[%d]\n", r, w, addr, t);
 	gpr[t] = r;
+}
+
+void instrLWL(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
+	u32 addr = gpr[b] + f;
+	u8 shift = 8 * (addr & 3);
+	u32 mask = 0xFFFFFFFF << shift;
+	u32 dat = readu32(addr & ~3);
+	u32 lval = (gpr[t] & ~mask) | (dat << shift);
+	gpr[t] = s32ext64(lval);
+}
+
+void instrLWR(u32 instr) {
+	char b = (instr >> 21) & 0x1F;
+	char t = (instr >> 16) & 0x1F;
+	i32 f = (i32)s16ext32(instr & 0xFFFF);
+	u32 addr = gpr[b] + f;
+	u8 shift = 8 * ((addr^3) & 3);
+	u32 mask = 0xFFFFFFFF >> shift;
+	u32 dat = readu32(addr & ~3);
+	u32 lval = (gpr[t] & ~mask) | (dat >> shift);
+	gpr[t] = s32ext64(lval);
 }
 
 void instrBNE(u32 instr) {
